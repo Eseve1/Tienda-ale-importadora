@@ -69,15 +69,9 @@
 	function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
 </script>
 
-</script>
-
 <svelte:window on:scroll={handleScroll} />
 
 <div class="min-h-screen bg-[#f2f3f7] font-sans flex flex-col relative">
-
-<div class="min-h-screen bg-[#f2f3f7] font-sans flex flex-col relative">
-<div class="min-h-screen bg-[#f2f3f7] font-sans flex flex-col relative">
-
 	<div class="bg-[#FF6600] text-white py-2 overflow-hidden relative z-[110]">
 		<div class="whitespace-nowrap animate-marquee flex gap-10 font-bold text-xs md:text-sm tracking-widest uppercase opacity-90">
 			<span>🔥 Envíos a todo Bolivia</span>
