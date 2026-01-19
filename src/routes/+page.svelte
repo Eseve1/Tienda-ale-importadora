@@ -70,7 +70,6 @@
 </script>
 
 <svelte:window on:scroll={handleScroll} />
-<svelte:window on:scroll={handleScroll} />
 
 <svelte:head>
 	<title>Ale Importadora | Mayoristas en Santa Cruz y Envíos a toda Bolivia</title>
