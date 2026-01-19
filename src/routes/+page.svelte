@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	// Importamos los componentes de tarjeta (asegúrate de que existan en tu carpeta lib)
+	// Importamos los componentes de tarjeta
 	import RetailCard from '$lib/components/grid/RetailCard.svelte';
 	import WholesaleCard from '$lib/components/grid/WholesaleCard.svelte';
 
@@ -117,7 +117,7 @@
 							<h1 class="text-2xl md:text-4xl font-[900] uppercase tracking-tighter leading-none text-white drop-shadow-sm">Venta por Unidad</h1>
 						</div>
 						<div class="bg-white text-[#FF6600] px-6 py-2.5 rounded-[4px] font-bold text-xs uppercase shadow hover:bg-orange-50 transition-colors">
-							Ver ofertas retail
+							VER LIQUIDACIÓN AHORA
 						</div>
 					</div>
 				</a>
