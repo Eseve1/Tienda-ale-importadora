@@ -1,41 +1,27 @@
 <script lang="ts">
-	import { fade } from 'svelte/transition';
-	import type { Product } from '../../../utils/products';
-	import RowItem from '$lib/components/grid/RowItem.svelte';
+	export let product: any;
+	const WA = "59161333335";
 
-	interface Props {
-		selectedFilter?: string;
-		products?: Array<Product>;
+	function send() {
+		const msg = `Hola Ale Import, me interesa:\n📦 *${product.name}*\n🔢 REF: ${product.codigo}\n💰 Precio: Bs. ${product.price}\n¿Tienen disponibilidad?`;
+		window.open(`https://wa.me/${WA}?text=${encodeURIComponent(msg)}`, '_blank');
 	}
-
-	let { products = [], selectedFilter = 'popular' }: Props = $props();
-
-	const everyXWithOffset = (index: number, x: number, offset: number = 0) =>
-		(index + 1) % x === offset && index !== 0;
 </script>
 
-{#key selectedFilter}
-	<div class="grid gap-8" in:fade={{ duration: 1000 }}>
-		{#if products.length > 0}
-			<div class="grid grid-cols-1 gap-6 xs:grid-cols-2 md:grid-cols-3 md:gap-8">
-				{#each products as product, index (`${product.slug} + ${index}`)}
-					<div
-						class={`col-span-1 ${everyXWithOffset(index, 3) ? 'xs:col-span-2' : 'xs:col-span-1'} ${everyXWithOffset(index, 9, 4) || everyXWithOffset(index, 9, 8) ? 'large md:col-span-2 md:row-span-2' : 'md:col-span-1 md:row-span-1'}`}
-					>
-						<RowItem {product} />
-					</div>
-				{/each}
-			</div>
-		{:else}
-			<!-- Fallback Message -->
-			<div class="flex flex-col items-center justify-center gap-4 text-center">
-				<p
-					class="text-[20px] font-normal leading-[24px] tracking-[-0.2px] text-[#56565C] dark:text-[#A3A3A0]"
-				>
-					No items found for this category.
-				</p>
-				<a href="?category=All Products" class="text-blue-500 underline"> Browse all products </a>
-			</div>
-		{/if}
+<div class="bg-white rounded-xl border border-gray-200 overflow-hidden flex flex-col shadow-sm relative">
+	<div class="aspect-square p-2 relative">
+		<img src={product.images[0]} alt="" class="w-full h-full object-contain" />
+		<div class="absolute top-2 left-2 bg-black/80 text-white text-[8px] font-bold px-1.5 py-0.5 rounded">REF: {product.codigo}</div>
 	</div>
-{/key}
+	<div class="p-3 flex flex-col gap-1">
+		<h3 class="text-[11px] font-bold text-gray-800 leading-tight h-8 line-clamp-2 uppercase">{product.name}</h3>
+		<div class="mt-1">
+			<div class="flex items-baseline gap-1">
+				<span class="text-[10px] font-black text-blue-700">Bs.</span>
+				<span class="text-2xl font-black text-blue-700 tracking-tighter">{product.price.toFixed(0)}</span>
+			</div>
+			<div class="text-[9px] font-bold text-green-600 uppercase">Mínimo: {product.moq} unid.</div>
+		</div>
+		<button on:click|stopPropagation={send} class="mt-2 w-full bg-[#25D366] text-white py-2 rounded-lg text-[10px] font-black uppercase shadow-md">Consultar</button>
+	</div>
+</div>

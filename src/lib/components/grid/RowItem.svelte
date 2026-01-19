@@ -1,149 +1,60 @@
 <script lang="ts">
-	import { type Product } from '../../../utils/products';
-	import BlurHashImage from '$lib/components/images/BlurHashImage.svelte';
+	export let product: any;
+	export let variant = 'default'; // 'default' (mayorista) o 'store-home'/'store-full' (unidad)
 
-	const { vertical = false, product } = $props<{
-		vertical?: boolean;
-		product: Product;
-	}>();
+	const precioTienda = (product.price * 0.8).toFixed(1);
 
-	let imgEl = $state<HTMLImageElement>();
+	// Si es oferta, el link lleva a la página de todas las ofertas
+	const cardLink = variant.includes('store') ? '/ofertas' : `/product-${product.slug}`;
 
-	$effect(() => {
-		const img = imgEl;
-		if (!img) return;
-
-		// If image is already loaded, add class immediately
-		if (img.complete) {
-			img.classList.add('!opacity-100');
-			return;
-		}
-
-		// Otherwise wait for load event
-		const handleLoad = () => img.classList.add('!opacity-100');
-		img.addEventListener('load', handleLoad);
-
-		// Cleanup function
-		return () => img.removeEventListener('load', handleLoad);
-	});
+	const urgencyBadges = ['¡Últimas unidades!', 'Pocas unidades', 'Stock crítico'];
+	const urgencyBadge = urgencyBadges[Math.floor(Math.random() * urgencyBadges.length)];
 </script>
 
-<a
-	href={`/product-${product.slug}`}
-	class={`card ${vertical ? 'vertical-card' : 'horizontal-card'}`}
->
-	<div class="card-image relative">
-		<BlurHashImage
-			{product}
-			useViewTransition
-			blurHashUrl={product.imagesBlurHashes?.[0] || ''}
-			imageUrl={'/images/products/' + product.images[0]}
-		/>
-	</div>
+<div class="bg-white flex flex-col h-full rounded-xl overflow-hidden group border border-transparent hover:border-[#007e33]/30 hover:shadow-lg transition-all duration-300 p-2 cursor-pointer transform hover:-translate-y-1">
+	<a href={cardLink} class="no-underline flex flex-col h-full">
 
-	<div class="card-content flex flex-col items-start gap-2">
-		<span class="product-name" style="view-transition-name: product-title-{product.slug};"
-			>{product.name}</span
-		>
-
-		<span class="product-price" style="view-transition-name: product-price-{product.slug};">
-			${product.price.toFixed(2)}
-			{#if product.discount}
-				<span class="product-price-discount">-{(product.discount * 100).toFixed(0)}%</span>
+		<div class="aspect-square bg-[#f7f7f7] rounded-lg overflow-hidden mb-2 relative flex items-center justify-center">
+			<img src={product.images[0]} alt="" class="w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform" />
+			{#if variant.includes('store')}
+				<div class="absolute top-0 left-0 bg-[#007e33] text-white text-[9px] font-black px-2 py-1 rounded-br-lg uppercase">
+					Santa Cruz
+				</div>
 			{/if}
-		</span>
-	</div>
-</a>
+		</div>
+
+		<h3 class="text-[13px] text-[#222] font-normal leading-snug h-9 line-clamp-2 mb-2 sentence-case">
+			{product.description || product.name}
+		</h3>
+
+		{#if variant.includes('store')}
+			<div class="flex flex-col gap-1">
+				<div class="border-2 border-[#ff4014] rounded-lg overflow-hidden">
+					<div class="bg-[#ff4014] text-white text-[9px] font-black uppercase text-center py-0.5">Precio exclusivo en tienda</div>
+					<div class="bg-[#fff5f2] p-1.5 text-center">
+						<span class="text-[11px] text-gray-400 line-through">Regular: Bs. {product.price}</span>
+						<div class="flex items-baseline justify-center gap-1">
+							<span class="text-[24px] font-[900] text-[#ff4014]">Bs. {precioTienda}</span>
+							<span class="text-[12px] font-black text-[#ff4014]">-20%</span>
+						</div>
+					</div>
+				</div>
+				<div class="mt-auto pt-1">
+					<div class="inline-flex items-center justify-center w-full gap-1 text-[10px] font-bold text-[#d32f2f] bg-red-50 px-2 py-1 rounded-md animate-pulse">
+						{urgencyBadge}
+					</div>
+				</div>
+			</div>
+		{:else}
+			<div class="flex flex-col">
+				<span class="text-[11px] text-gray-500 font-medium lowercase">Precio mayorista:</span>
+				<span class="text-[20px] font-bold text-[#ff4014]">Bs. {product.price}</span>
+				<span class="text-[11px] text-gray-400 font-medium">Mínimo: {product.moq || 12} unidades</span>
+			</div>
+		{/if}
+	</a>
+</div>
 
 <style>
-	.card {
-		gap: 24px;
-		display: flex;
-		cursor: pointer;
-		background: #fff;
-		border-radius: 16px;
-		flex-direction: column;
-		align-items: flex-start;
-		padding: var(--space-6, 12px);
-		border: 1px solid #f4f4f7;
-	}
-
-	:global(html.dark .card) {
-		background: #1b1b1b;
-		border: 1px solid #2a2a2e;
-	}
-
-	.card:hover .card-image::before {
-		transform: scale(1.1);
-	}
-
-	.vertical-card {
-		height: 316px;
-		align-self: stretch;
-	}
-
-	.horizontal-card {
-		height: auto;
-	}
-
-	.card-image {
-		height: 210px;
-		flex-shrink: 0;
-		border-radius: 8px;
-		align-self: stretch;
-		overflow: hidden;
-		position: relative;
-	}
-
-	.product-image {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-		border-radius: 8px;
-		background-size: cover;
-		background-position: center;
-		transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-	}
-
-	:global(.card:hover .product-image) {
-		transform: scale(1.1);
-	}
-
-	.product-name {
-		color: #19191c;
-		font-size: 24px;
-		font-style: normal;
-		font-weight: 400;
-		line-height: 28px;
-	}
-
-	:global(html.dark .product-name) {
-		color: #e6e6e3;
-	}
-
-	.product-price {
-		color: #56565c;
-		font-size: 14px;
-		font-style: normal;
-		font-weight: 400;
-		line-height: 22px;
-		letter-spacing: -0.063px;
-	}
-
-	:global(html.dark .product-price, html.dark .product-price-discount) {
-		color: #a3a3a0;
-	}
-
-	.product-price-discount {
-		border-radius: var(--space-2, 4px);
-		padding: var(--space-1, 2px) var(--space-2, 4px);
-		margin-left: var(--space-1, 2px);
-		color: #56565c;
-		font-size: 14px;
-		font-style: normal;
-		font-weight: 400;
-		line-height: 22px;
-		letter-spacing: -0.063px;
-		background-color: rgba(0, 0, 0, 0.06);
-	}
+    .sentence-case::first-letter { text-transform: uppercase; }
 </style>

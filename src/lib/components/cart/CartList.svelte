@@ -1,131 +1,77 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import CartRowItem from './CartRowItem.svelte';
-	import { cart } from '$lib/stores/cart.svelte';
-	import { Button } from '$lib/components/ui/button';
+	import { cart, type CartItem } from '$lib/stores/cart.svelte';
+	import { fade } from 'svelte/transition';
 
-	function getDiscount(): number {
-		return cart.getItems().reduce((total, cartItem) => {
-			const discount = cartItem.product.discount || 0;
+	let { item } = $props<{ item: CartItem }>();
 
-			if (!discount) {
-				return total;
-			}
+	// Imagen o Placeholder
+	let imageSrc = $derived(item.product.images?.[0] || '/placeholder.png');
 
-			const discountedPrice = cartItem.product.price || 0;
-			const originalPrice = discountedPrice / (1 - discount);
+	// Funciones del carrito
+	const increase = () => {
+		cart.updateQuantity(item.product, item.features, item.quantity + 1);
+	};
 
-			return total + (originalPrice - discountedPrice) * cartItem.quantity;
-		}, 0);
-	}
+	const decrease = () => {
+		cart.updateQuantity(item.product, item.features, item.quantity - 1);
+	};
 
-	function getTotal(): number {
-		return cart
-			.getItems()
-			.reduce((total, cartItem) => total + cartItem.product.price * cartItem.quantity, 0);
-	}
+	const remove = () => {
+		cart.remove(item.product, item.features);
+	};
 
-	let discounts = $derived(
-		cart.getItems().reduce((total, cartItem) => {
-			const discount = cartItem.product.discount || 0;
-			const originalPrice = cartItem.product.price / (1 - discount);
-			return total + originalPrice * discount * cartItem.quantity;
-		}, 0)
-	);
-
-	onMount(() => {
-		// scroll to the last item if one exits,
-		// this makes the list appear not being cut off at the bottom, right above the cart details.
-		if (cart.getTotalItems() > 1) {
-			const lastCartItem = cart.getItems().at(-1);
-			if (lastCartItem) {
-				document.getElementById(lastCartItem.slug)?.scrollIntoView();
-			}
-		}
-	});
+	const subtotal = item.price * item.quantity;
 </script>
 
-<div class="mt-4 flex min-h-1 w-full flex-grow flex-col">
-	<div class="flex flex-grow flex-col gap-2 overflow-y-auto pb-4">
-		{#each cart.getItems() as cartItem}
-			<CartRowItem {cartItem} />
-		{:else}
-			<div class="flex flex-col justify-center gap-4 p-4 text-center">
-				<h2 class="text-lg font-semibold text-gray-700 dark:text-gray-300">Your cart is empty</h2>
-				<p class="text-sm text-gray-500 dark:text-gray-400">
-					Looks like you haven't added anything to your cart yet.
-				</p>
-			</div>
-		{/each}
+<div transition:fade class="flex gap-3 py-3 border-b border-gray-100 last:border-0 group">
+
+	<div class="h-[60px] w-[60px] flex-shrink-0 overflow-hidden rounded border border-gray-200 bg-white">
+		<img
+			src={imageSrc}
+			alt={item.product.name}
+			class="h-full w-full object-contain p-0.5"
+		/>
 	</div>
 
-	{#if cart.getTotalItems() > 0}
-		<div class="mt-4 flex w-full flex-col gap-6">
-			<div class="total-section flex flex-col gap-3">
-				<div class="flex flex-wrap items-center justify-between">
-					<span class="font-inter text-[16px] font-medium text-[#97979B] dark:text-[#5F5F63]"
-						>Subtotal</span
-					>
-					<span class="product-price">${(getTotal() + getDiscount()).toFixed(2)}</span>
-				</div>
+	<div class="flex flex-1 flex-col justify-between">
 
-				{#if discounts > 0}
-					<div class="flex flex-wrap items-center justify-between">
-						<span class="font-inter text-[16px] font-medium text-[#97979B] dark:text-[#5F5F63]"
-							>Discounts</span
-						>
-						<span class="product-price">-${getDiscount().toFixed(2)}</span>
+		<div class="flex justify-between items-start">
+			<div class="pr-2">
+				<h3 class="text-[13px] font-bold text-gray-900 leading-tight line-clamp-2">
+					<a href={`/product-${item.product.slug}`} class="hover:text-[#fb7701]">
+						{item.product.name}
+					</a>
+				</h3>
+
+				{#if item.product.codigo}
+					<div class="mt-1 inline-block bg-gray-100 text-gray-500 text-[10px] px-1.5 py-0.5 rounded font-mono border border-gray-200">
+						REF: <span class="text-gray-700 font-bold">{item.product.codigo}</span>
 					</div>
 				{/if}
-
-				<div class="flex flex-wrap items-center justify-between">
-					<span class="font-inter text-[16px] font-medium text-[#97979B] dark:text-[#5F5F63]"
-						>Shipping</span
-					>
-					<span class="product-price">Calculated at next step</span>
-				</div>
-
-				<hr />
-
-				<div class="flex flex-wrap items-center justify-between">
-					<span class="font-inter text-[16px] font-medium text-[#2D2D31] dark:text-[#d1d1cd]"
-						>Total</span
-					>
-					<span class="product-price text-[#2D2D31] dark:text-[#d1d1cd]"
-						>${getTotal().toFixed(2)}</span
-					>
-				</div>
 			</div>
 
-			<form method="POST" action="/api/checkout">
-				<input
-					type="hidden"
-					name="cart"
-					value={JSON.stringify(
-						cart.getItems().map((item) => ({
-							slug: item.product.slug.split('_')[0],
-							quantity: item.quantity,
-							features: item.features
-						}))
-					)}
-				/>
-				<Button type="submit" class="w-full">Checkout</Button>
-			</form>
+			<div class="text-right">
+				<span class="text-[10px] text-gray-400">Unitario</span>
+				<div class="text-[12px] font-medium text-gray-700">Bs. {item.price.toFixed(2)}</div>
+			</div>
 		</div>
-	{/if}
+
+		<div class="flex items-center justify-between mt-2">
+
+			<div class="flex items-center h-6 border border-gray-300 rounded bg-white shadow-sm">
+				<button onclick={decrease} class="w-7 h-full flex items-center justify-center text-gray-500 hover:bg-gray-100 border-r border-gray-200 active:bg-gray-200 text-sm font-bold">-</button>
+				<span class="w-8 text-center text-[12px] font-bold text-gray-900">{item.quantity}</span>
+				<button onclick={increase} class="w-7 h-full flex items-center justify-center text-gray-500 hover:bg-gray-100 border-l border-gray-200 active:bg-gray-200 text-sm font-bold">+</button>
+			</div>
+
+			<div class="flex items-center gap-3">
+				<button onclick={remove} class="text-[10px] text-red-400 underline hover:text-red-600">
+					Borrar
+				</button>
+				<div class="text-[13px] font-black text-[#B12704]">
+					Bs. {subtotal.toFixed(2)}
+				</div>
+			</div>
+		</div>
+	</div>
 </div>
-
-<style>
-	.product-price {
-		color: #56565c;
-		font-size: 14px;
-		font-style: normal;
-		font-weight: 400;
-		line-height: 22px;
-		letter-spacing: -0.063px;
-	}
-
-	:global(html.dark .product-price) {
-		color: #a3a3a0;
-	}
-</style>

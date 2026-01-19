@@ -15,14 +15,15 @@ let items = $state([] as Cart);
 let isOpen = $state(false);
 let isLoaded = $state(false);
 let optimisticTotal = $state(0);
+
+// Calculamos el total de items sumando las cantidades
 const totalItems = $derived(items.reduce((total, item) => total + item.quantity, 0));
 
+// Debounce para no saturar la base de datos
 const debounce = <T extends unknown[]>(callback: (...args: T) => void, delay: number) => {
 	let timeoutTimer: ReturnType<typeof setTimeout>;
-
 	return (...args: T) => {
 		clearTimeout(timeoutTimer);
-
 		timeoutTimer = setTimeout(() => {
 			callback(...args);
 		}, delay);
@@ -63,16 +64,21 @@ export const cart = {
 		isLoaded = true;
 	},
 
-	add: (product: Product, features: Record<string, string>) => {
+	// --- MODIFICACIÓN CLAVE AQUÍ ---
+	// Añadimos el parámetro opcional 'quantity' (por defecto es 1)
+	add: (product: Product, features: Record<string, string>, quantity: number = 1) => {
 		const featuresId = Object.keys(features)
 			.map((v) => `${v}-${features[v]}`)
 			.join('-');
 		const cartItemSlug = `${product.slug}_${featuresId}`;
 
 		const index = items.findIndex((item) => cartItemSlug === item.slug);
+
 		if (index !== -1) {
-			items[index].quantity += 1;
+			// Si ya existe, sumamos la cantidad que nos piden (ej: +6 o +12)
+			items[index].quantity += quantity;
 		} else {
+			// Si es nuevo
 			let price = product.price;
 			for (const featureName in features) {
 				const feature = product.features?.find((f) => f.name === featureName);
@@ -87,7 +93,7 @@ export const cart = {
 				...items,
 				{
 					slug: cartItemSlug,
-					quantity: 1,
+					quantity: quantity, // Usamos la cantidad solicitada
 					features,
 					product,
 					price
@@ -95,6 +101,8 @@ export const cart = {
 			];
 		}
 		saveCartToPrefs(items);
+		// Opcional: Abrir el carrito automáticamente al agregar
+		// isOpen = true;
 	},
 
 	remove: (product: Product, features: Record<string, string>) => {

@@ -1,19 +1,26 @@
 import { page } from '$app/stores';
 import { derived } from 'svelte/store';
 
-export const categories = ['All Products', 'Tops', 'Sweaters', 'Bottoms', 'Shoes', 'Accessories'];
+// Tus categorías exactas de Appwrite
+export const categories = [
+	'All Products',
+	'Belleza y salud',
+	'Herramientas',
+	'Hogar y cocina',
+	'Infantil',
+	'Moda y equipaje',
+	'Oficina y escolar',
+	'Tecnología'
+];
 
-export const title = 'Store template';
-export const description =
-	'A modern template designed for online stores with a mobile-friendly interface, customizable theme, and an integrated payments using Stripe.';
-export const name = 'Store';
+export const title = 'Catálogo Mayorista';
+export const description = 'Catálogo de Ale Importadora - Envíos a todo el país';
+export const name = 'Ale Importadora';
 
 export const filterOptions = [
-	{ value: 'popular', label: 'Popular' },
-	{ value: 'discount', label: 'Highest discount' },
-	{ value: 'lth', label: 'Price Low to High' },
-	{ value: 'htl', label: 'Price High to Low' },
-	{ value: 'newest', label: 'Newest' }
+	{ value: 'newest', label: 'Novedades' },
+	{ value: 'lth', label: 'Precio: Menor a Mayor' },
+	{ value: 'htl', label: 'Precio: Mayor a Menor' }
 ];
 
 export const selectedCategory = derived(
