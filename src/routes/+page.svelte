@@ -69,17 +69,11 @@
 	function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
 </script>
 
+</script>
+
 <svelte:window on:scroll={handleScroll} />
 
-<svelte:head>
-	<title>Ale Importadora | Mayoristas en Santa Cruz y Envíos a toda Bolivia</title>
-	<meta name="description" content="Tu proveedor de confianza en Santa Cruz. Venta por mayor y menor con envíos rápidos por flota a todo el país." />
-	<meta property="og:title" content="Catálogo Mayorista Ale Importadora - Santa Cruz" />
-	<meta property="og:description" content="Precios de fábrica por fardo y unidad. Envíos garantizados desde Santa Cruz a toda Bolivia." />
-	<meta property="og:image" content="https://importadoraale.app/og-home.jpg" />
-	<meta property="og:url" content="https://importadoraale.app" />
-	<meta property="og:type" content="website" />
-</svelte:head>
+<div class="min-h-screen bg-[#f2f3f7] font-sans flex flex-col relative">
 
 <div class="min-h-screen bg-[#f2f3f7] font-sans flex flex-col relative">
 <div class="min-h-screen bg-[#f2f3f7] font-sans flex flex-col relative">
