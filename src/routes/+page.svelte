@@ -68,7 +68,7 @@
 	<meta property="og:title" content="Ale Importadora Bolivia - Catálogo Mayorista" />
 	<meta property="og:description" content="Mira nuestro catálogo con precios de fábrica. Envíos garantizados a todo el país." />
 	<meta property="og:url" content="https://aleimportadora.bo/" />
-	<meta property="og:image" content="%sveltekit.assets%/favicon.png" />
+	<meta property="og:image" content="https://importadoraale.app/favicon.png" />
 
 	<meta name="theme-color" content="#FF6600" />
 </svelte:head>
