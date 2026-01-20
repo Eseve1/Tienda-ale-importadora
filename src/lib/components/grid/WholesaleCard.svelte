@@ -123,7 +123,7 @@
 					</div>
 				</div>
 				<div class="flex items-center justify-between bg-gray-50 px-2 py-1 rounded-[4px] border border-gray-200 mt-1">
-					<span class="text-[10px] text-gray-500 font-bold uppercase">Total Caja:</span>
+					<span class="text-[10px] text-gray-500 font-bold uppercase">Total :</span>
 					<span class="text-[12px] font-black text-[#FF6600]">Bs. {inversionTotal}</span>
 				</div>
 			</div>
