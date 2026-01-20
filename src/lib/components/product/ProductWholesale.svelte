@@ -1,56 +1,49 @@
-<script lang="ts">
+<script>
 	export let product;
-
-	// FUNCIÓN DE FORMATO DENTRO DE LA TARJETA
-	function formatearTexto(texto) {
-		if (!texto) return 'Producto sin nombre';
-		// 1. Quitar espacios extra
-		// 2. Convertir todo a minúscula
-		// 3. Poner la primera letra en mayúscula
-		const textoLimpio = texto.trim().toLowerCase();
-		return textoLimpio.charAt(0).toUpperCase() + textoLimpio.slice(1);
-	}
-
-	const foto = product.imagen || product.images?.[0] || '';
 </script>
 
-<a href="/product-{product.$id}" class="bg-white rounded-[20px] border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-300 group flex flex-col no-underline h-full">
+<div class="bg-white border border-gray-200 rounded-lg hover:shadow-xl hover:border-orange-300 transition-all duration-300 h-full flex flex-col group relative overflow-hidden">
 
-	<div class="relative w-full pt-[100%] bg-gray-50 overflow-hidden">
-		{#if foto}
-			<img
-				src={foto}
-				alt={product.descripcion}
-				class="absolute top-0 left-0 w-full h-full object-contain p-4 mix-blend-multiply group-hover:scale-105 transition-transform duration-500"
-				loading="lazy"
-			/>
-		{:else}
-			<div class="absolute top-0 left-0 w-full h-full flex items-center justify-center text-gray-300">
-				<i class="bi bi-image text-3xl"></i>
+	<div class="relative w-full aspect-square bg-white p-4 overflow-hidden">
+		<img
+			src={product.imagen}
+			alt={product.descripcion}
+			class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+		>
+		{#if !product.disponible}
+			<div class="absolute inset-0 bg-white/60 flex items-center justify-center backdrop-blur-sm">
+				<span class="bg-gray-800 text-white text-[10px] px-2 py-1 font-bold uppercase rounded">Agotado</span>
 			</div>
 		{/if}
 	</div>
 
-	<div class="p-3 flex flex-col flex-1">
+	<div class="p-3 flex flex-col flex-1 border-t border-gray-100">
 
-		<h3 class="font-bold text-gray-800 text-xs md:text-sm leading-tight mb-1 line-clamp-2">
-			{formatearTexto(product.descripcion)}
+		<h3 class="text-[13px] text-gray-700 font-medium leading-snug line-clamp-2 mb-2 h-[34px] group-hover:text-[#FF6600] transition-colors">
+			{product.descripcion}
 		</h3>
 
-		<p class="text-[10px] text-gray-400 font-bold mb-3">REF: {product.codigo}</p>
-
 		<div class="mt-auto">
-			<span class="block text-[10px] text-gray-500 font-bold uppercase tracking-wider">Por Mayor</span>
 			<div class="flex items-baseline gap-1">
-				<span class="text-sm font-bold text-[#CC0000]">Bs.</span>
-				<span class="text-xl font-[1000] text-[#CC0000] tracking-tight">{product.preciopormayor}</span>
+				<span class="text-lg font-black text-gray-900">Bs {product.preciopormayor}</span>
+				<span class="text-[10px] text-gray-400 font-normal">/unidad</span>
 			</div>
 
-			{#if product.moq}
-				<div class="mt-1 inline-block bg-gray-100 px-2 py-1 rounded text-[9px] font-bold text-gray-500">
-					Mínimo: {product.moq} u.
-				</div>
-			{/if}
+			<div class="flex justify-between items-center mt-1">
+        <span class="text-[10px] text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">
+          Min: {product.moq} pzs
+        </span>
+				{#if product.precioUnidad}
+					<span class="text-[10px] text-gray-400 line-through">Bs {product.precioUnidad}</span>
+				{/if}
+			</div>
+		</div>
+
+		<div class="mt-3 pt-2 border-t border-dashed border-gray-200">
+			<button class="w-full py-1.5 rounded border border-[#FF6600] text-[#FF6600] text-xs font-bold uppercase hover:bg-[#FF6600] hover:text-white transition-colors flex items-center justify-center gap-2">
+				<i class="bi bi-chat-text-fill"></i>
+				Contactar
+			</button>
 		</div>
 	</div>
-</a>
+</div>

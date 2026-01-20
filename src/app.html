@@ -1,38 +1,35 @@
 <!doctype html>
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
+<html lang="es">
+<head>
+	<meta charset="utf-8" />
 
-		<meta name="theme-color" content="#fafafb" />
-		<meta name="apple-mobile-web-app-status-bar-style" content="#fafafb" />
+	<title>Ale Importadora Bolivia</title>
 
-		<link rel="manifest" href="%sveltekit.assets%/manifest.json" crossorigin="use-credentials" />
-		<link
-			rel="mask-icon"
-			href="%sveltekit.assets%/favicons/safari-pinned-tab.svg"
-			color="#19191c"
-		/>
-		<link rel="shortcut icon" href="%sveltekit.assets%/favicon.ico" />
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<script>
-			(function () {
-				try {
-					let theme = localStorage.getItem('theme-preference');
-					if (!theme) {
-						theme = 'light';
-					} else if (theme === 'auto') {
-						theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-					}
-					document.documentElement.classList.toggle('dark', theme === 'dark');
-				} catch (e) {
-					// If localStorage is not available, fallback to light theme
-					document.documentElement.classList.remove('dark');
+	<meta name="theme-color" content="#FF6600" />
+	<meta name="apple-mobile-web-app-status-bar-style" content="#FF6600" />
+
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+	<link rel="icon" href="%sveltekit.assets%/favicon.png" />
+
+	<script>
+		(function () {
+			try {
+				let theme = localStorage.getItem('theme-preference');
+				if (!theme) {
+					theme = 'light';
+				} else if (theme === 'auto') {
+					theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 				}
-			})();
-		</script>
-		%sveltekit.head%
-	</head>
-	<body data-sveltekit-preload-data="hover">
-		<div style="display: contents">%sveltekit.body%</div>
-	</body>
+				document.documentElement.classList.toggle('dark', theme === 'dark');
+			} catch (e) {
+				document.documentElement.classList.remove('dark');
+			}
+		})();
+	</script>
+	%sveltekit.head%
+</head>
+<body data-sveltekit-preload-data="hover">
+<div style="display: contents">%sveltekit.body%</div>
+</body>
 </html>

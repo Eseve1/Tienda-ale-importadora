@@ -3,7 +3,7 @@
 	import { fade } from 'svelte/transition';
 	export let product;
 
-	// DATOS
+	// --- TU LÓGICA INTACTA (NO SE TOCÓ NADA AQUÍ) ---
 	$: pMayor = parseFloat(product?.preciopormayor || product?.price || 0);
 	$: precioDisplay = pMayor.toFixed(2);
 	$: esOfertaRelampago = pMayor <= 10;
@@ -15,7 +15,7 @@
 
 	let mostrarZoom = false;
 
-	// --- LÓGICA ETIQUETAS ---
+	// ETIQUETAS
 	const etiquetas = [
 		{ text: "🚀 Envío Inmediato", color: "bg-blue-50 text-blue-700 border-blue-100" },
 		{ text: "⭐ Calidad Top", color: "bg-yellow-50 text-yellow-700 border-yellow-100" },
@@ -69,17 +69,17 @@
 		<div class="relative w-full max-w-lg bg-white rounded-xl overflow-hidden p-2 shadow-2xl animate-in fade-in zoom-in duration-200">
 			<button class="absolute top-2 right-2 z-10 bg-gray-100 hover:bg-red-100 rounded-full p-2" on:click={cerrarZoom}>✕</button>
 			<img src={foto} alt="" class="w-full h-auto object-contain max-h-[80vh]" />
-			<div class="text-center mt-3 font-bold text-lg text-gray-800">{formatearTexto(product.name)}</div>
+			<div class="text-center mt-3 font-bold text-lg text-gray-800">{formatearTexto(product.name || product.descripcion)}</div>
 			<div class="text-center text-sm text-[#FF6600] font-bold">Bs. {precioDisplay}</div>
 		</div>
 	</div>
 {/if}
 
 {#if product}
-	<a href="/product-{product.slug || product.$id}" class="flex flex-col bg-white border border-gray-200 rounded-[10px] overflow-hidden hover:border-[#FF6600] hover:shadow-xl transition-all duration-300 relative group no-underline h-full">
+	<a href="/product-{product.slug || product.$id}" class="flex flex-col bg-white border border-gray-100 rounded-[12px] overflow-hidden hover:border-orange-200 hover:shadow-lg transition-all duration-300 relative group no-underline h-full">
 
 		{#if esOfertaRelampago}
-			<div class="absolute top-2 left-2 bg-[#FF0033] text-white text-[10px] font-bold px-2 py-0.5 rounded-[4px] z-10 shadow-sm animate-pulse">
+			<div class="absolute top-2 left-2 bg-[#FF0033] text-white text-[9px] font-bold px-2 py-0.5 rounded-[4px] z-10 shadow-sm animate-pulse">
 				¡Oferta!
 			</div>
 		{/if}
@@ -92,7 +92,7 @@
 				<img
 					src={foto}
 					alt=""
-					class="absolute inset-0 w-full h-full object-contain p-1 mix-blend-multiply group-hover:scale-110 transition-transform duration-500"
+					class="absolute inset-0 w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-500"
 					loading="lazy"
 				/>
 			{:else}
@@ -104,7 +104,7 @@
 
 		<div class="p-3 flex flex-col flex-1">
 
-			<h3 class="text-[13px] text-[#222] leading-snug line-clamp-2 font-medium hover:text-[#FF6600] mb-0.5 min-h-[2.5em]">
+			<h3 class="text-[13px] text-gray-700 leading-snug line-clamp-2 font-semibold hover:text-[#FF6600] mb-1 min-h-[2.5em]">
 				{formatearTexto(product.name || product.descripcion)}
 			</h3>
 
@@ -119,35 +119,35 @@
 				{/key}
 			</div>
 
-			<div class="mt-auto border-t border-dashed border-gray-100 pt-1.5 mb-2">
+			<div class="mt-auto border-t border-dashed border-gray-100 pt-2 mb-2">
 
 				<div class="flex items-end justify-between mb-1">
 					<div class="flex flex-col">
 						<span class="text-[9px] text-gray-400 font-medium leading-none mb-0.5">Precio Unitario</span>
 						<div class="flex items-baseline gap-0.5">
-							<span class="text-[12px] font-bold text-[#FF6600]">Bs</span>
-							<span class="text-[20px] font-[900] text-[#222] leading-none">{precioDisplay}</span>
+							<span class="text-[11px] font-bold text-gray-500">Bs</span>
+							<span class="text-[18px] font-bold text-gray-900 leading-none">{precioDisplay}</span>
 						</div>
 					</div>
 
 					<div class="text-right flex flex-col items-end">
 						<span class="text-[9px] text-gray-400">Ref: {product.codigo || 'S/N'}</span>
-						<span class="text-[10px] font-bold text-gray-600 bg-gray-100 px-1.5 rounded mt-0.5">x {minQty} Unid.</span>
+						<span class="text-[9px] font-bold text-gray-500 bg-gray-50 px-1.5 rounded mt-0.5 border border-gray-100">Mín: {minQty} Uds.</span>
 					</div>
 				</div>
 
-				<div class="flex items-center justify-between bg-orange-50 px-2 py-1 rounded-[4px] border border-orange-100 mt-1">
-					<span class="text-[10px] text-orange-600 font-bold uppercase">Total Compra:</span>
-					<span class="text-[12px] font-black text-orange-700">Bs. {inversionTotal}</span>
+				<div class="flex items-center justify-between bg-gray-50 px-2 py-1 rounded-[4px] border border-gray-200 mt-1">
+					<span class="text-[10px] text-gray-500 font-bold uppercase">Total :</span>
+					<span class="text-[12px] font-black text-[#FF6600]">Bs. {inversionTotal}</span>
 				</div>
 
 			</div>
 
 			<div
-				class="w-full bg-[#FF6600] hover:bg-[#e05a00] text-white rounded-full py-2 text-center cursor-pointer transition-transform active:scale-95 flex items-center justify-center gap-2 font-bold text-[12px] shadow-sm shadow-orange-200"
+				class="w-full bg-white hover:bg-[#FF6600] text-[#FF6600] hover:text-white border border-[#FF6600] rounded-lg py-1.5 text-center cursor-pointer transition-colors active:scale-95 flex items-center justify-center gap-2 font-bold text-[12px]"
 				on:click={comprarWhatsApp}
 			>
-				<i class="bi bi-whatsapp text-[14px]"></i>
+				<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16"><path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/></svg>
 				Cotizar Ahora
 			</div>
 
