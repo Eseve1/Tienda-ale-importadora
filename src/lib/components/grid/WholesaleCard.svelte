@@ -155,7 +155,9 @@
 						Cotizar Ahora
 					</button>
 				{/if}
-				<p class="text-[8px] text-center text-gray-400 font-bold uppercase tracking-tighter">Venta x unidad solo en tienda física</p>
+				<p class="text-[7.5px] text-center text-gray-400 font-medium leading-tight">
+					Minoristas solo en tienda física
+				</p>
 			</div>
 		</div>
 	</div>
