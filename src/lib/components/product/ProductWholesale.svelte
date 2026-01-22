@@ -36,7 +36,7 @@
 	onDestroy(() => { if (intervalo) clearInterval(intervalo); });
 
 	function abrirZoom(e) {
-		e.preventDefault(); e.stopPropagation();
+		if(e) { e.preventDefault(); e.stopPropagation(); }
 		mostrarZoom = true;
 	}
 	function cerrarZoom(e) {
@@ -50,7 +50,7 @@
 
 		const nombre = (product.name || product.descripcion).toUpperCase();
 
-		// --- MENSAJE LIMPIO (SIN EMOJIS) ---
+		// --- MENSAJE LIMPIO ---
 		const mensaje = `Hola AleImport! Cotizacion (Ref: ${product.codigo || 'S/N'}):\n\n` +
 			`PRODUCTO: ${nombre}\n` +
 			`CANTIDAD MINIMA: ${minQty} unidades\n` +
@@ -63,8 +63,19 @@
 </script>
 
 {#if mostrarZoom}
-	<div class="fixed inset-0 z-[9999] bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm" on:click={cerrarZoom} role="button" tabindex="0" on:keydown={(e) => e.key === 'Escape' && cerrarZoom(e)}>
-		<div class="relative w-full max-w-lg bg-white rounded-xl overflow-hidden p-4 sm:p-5 shadow-2xl animate-in fade-in zoom-in duration-200" on:click|stopPropagation role="dialog">
+	<div
+		class="fixed inset-0 z-[9999] bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm"
+		on:click={cerrarZoom}
+		role="button"
+		tabindex="0"
+		on:keydown={(e) => e.key === 'Escape' && cerrarZoom(e)}
+	>
+		<div
+			class="relative w-full max-w-lg bg-white rounded-xl overflow-hidden p-4 sm:p-5 shadow-2xl animate-in fade-in zoom-in duration-200"
+			on:click|stopPropagation
+			role="document"
+			tabindex="-1"
+		>
 			<button class="absolute top-2 right-2 z-10 bg-gray-100 hover:bg-red-100 rounded-full p-2 font-bold" on:click={cerrarZoom}>✕</button>
 
 			<div class="bg-[#f8f8f8] rounded-lg overflow-hidden mb-4">
@@ -114,7 +125,22 @@
 			on:keydown={(e) => e.key === 'Enter' && abrirZoom(e)}
 			aria-label="Ver detalle del producto"
 		>
-			<img src={mainImage} alt="" class="absolute inset-0 w-full h-full object-contain p-2 transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+			<img
+				src={mainImage}
+				alt=""
+				class="absolute inset-0 w-full h-full object-contain p-2 transition-all duration-500 {secondImage && !estaAgotado ? 'group-hover:opacity-0' : 'group-hover:scale-105'} {estaAgotado ? 'grayscale' : ''}"
+				loading="lazy"
+			/>
+
+			{#if secondImage && !estaAgotado}
+				<img
+					src={secondImage}
+					alt="trasera"
+					class="absolute inset-0 w-full h-full object-contain p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+					loading="lazy"
+				/>
+			{/if}
+
 			{#if estaAgotado}
 				<div class="absolute inset-0 bg-white/40 flex items-center justify-center z-20">
 					<span class="bg-gray-800 text-white px-3 py-1 font-bold text-[10px] uppercase rounded-full">Sin Stock</span>
@@ -168,7 +194,7 @@
 				</p>
 			</div>
 		</div>
-{/if}
+	</div> {/if}
 
 <style>
     .relative.overflow-hidden { min-height: 24px; }
