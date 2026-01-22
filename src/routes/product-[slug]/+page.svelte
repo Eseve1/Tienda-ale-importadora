@@ -1,7 +1,33 @@
 <script lang="ts">
 	export let data;
 	$: product = data?.product;
-	$: foto = product?.imagen || product?.images?.[0] || '';
+
+	// 1. Array seguro de imágenes (Detecta si hay varias o solo una)
+	$: images = (product?.images && product.images.length > 0)
+		? product.images
+		: [product?.imagen || ''];
+
+	// Referencia para el scroll
+	let scrollContainer: HTMLElement;
+	let currentImageIndex = 0;
+
+	// Función para mover con flechas
+	const scroll = (direction: 'left' | 'right') => {
+		if (!scrollContainer) return;
+		const scrollAmount = scrollContainer.clientWidth;
+		if (direction === 'left') {
+			scrollContainer.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+		} else {
+			scrollContainer.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+		}
+	};
+
+	// Detectar qué foto se ve al deslizar con el dedo
+	const handleScroll = () => {
+		if (!scrollContainer) return;
+		const index = Math.round(scrollContainer.scrollLeft / scrollContainer.clientWidth);
+		currentImageIndex = index;
+	};
 
 	let zoom = false;
 </script>
@@ -10,7 +36,7 @@
 	<div class="min-h-screen bg-white flex flex-col relative font-sans">
 
 		<header class="p-4 flex items-center gap-4 border-b border-gray-100 bg-white sticky top-0 z-50">
-			<a href="/" class="p-2 bg-gray-50 hover:bg-gray-100 rounded-full text-black transition-colors" aria-label="Volver al catálogo">
+			<a href="/" class="p-2 bg-gray-50 hover:bg-gray-100 rounded-full text-black transition-colors">
 				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
 			</a>
 			<div class="flex flex-col">
@@ -19,33 +45,58 @@
 			</div>
 		</header>
 
-		<main class="flex-1 flex flex-col items-center p-4 pb-10">
+		<main class="flex-1 flex flex-col items-center p-4 pb-10 w-full max-w-xl mx-auto">
 
-			<button
-				type="button"
-				class="w-full max-w-xl bg-gray-50 rounded-[30px] border border-gray-100 p-6 flex flex-col items-center justify-center relative cursor-zoom-in active:scale-[0.98] transition-transform"
-				on:click={() => zoom = true}
-				aria-label="Ampliar imagen"
-			>
-				<div class="w-full aspect-square flex items-center justify-center mb-4">
-					{#if foto}
-						<img src={foto} alt={product.descripcion} class="w-full h-full object-contain mix-blend-multiply" />
-					{:else}
-						<div class="text-gray-300 font-bold italic uppercase flex flex-col items-center">
-							<i class="bi bi-image text-4xl mb-2"></i>
-							Sin Imagen
+			<div class="relative w-full aspect-square bg-gray-50 rounded-[30px] border border-gray-100 overflow-hidden group">
+
+				<div
+					class="flex overflow-x-auto snap-x snap-mandatory w-full h-full no-scrollbar"
+					bind:this={scrollContainer}
+					on:scroll={handleScroll}
+				>
+					{#each images as img, i}
+						<div class="w-full h-full flex-shrink-0 snap-center flex items-center justify-center p-6 relative">
+							<button class="w-full h-full" on:click={() => zoom = true}>
+								<img
+									src={img}
+									alt="{product.descripcion} - foto {i+1}"
+									class="w-full h-full object-contain mix-blend-multiply"
+								/>
+							</button>
 						</div>
-					{/if}
+					{/each}
 				</div>
 
-				<div class="bg-white/90 backdrop-blur-sm border border-gray-200 px-4 py-2 rounded-full shadow-sm">
-				<span class="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">
-					🔍 Toca para ampliar
-				</span>
-				</div>
-			</button>
+				{#if images.length > 1}
+					<button
+						class="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 shadow-md text-black p-3 rounded-full opacity-70 hover:opacity-100 disabled:opacity-0 transition-all"
+						on:click={() => scroll('left')}
+						disabled={currentImageIndex === 0}
+					>
+						⬅
+					</button>
 
-			<div class="mt-6 text-center max-w-lg px-2 mb-8 flex flex-col gap-0">
+					<button
+						class="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 shadow-md text-black p-3 rounded-full opacity-70 hover:opacity-100 disabled:opacity-0 transition-all"
+						on:click={() => scroll('right')}
+						disabled={currentImageIndex === images.length - 1}
+					>
+						➡
+					</button>
+
+					<div class="absolute bottom-4 left-0 right-0 flex justify-center gap-2 pointer-events-none">
+						{#each images as _, i}
+							<div class="w-2 h-2 rounded-full transition-all duration-300 shadow-sm {currentImageIndex === i ? 'bg-[#ff5000] w-6' : 'bg-gray-300'}"></div>
+						{/each}
+					</div>
+
+					<div class="absolute top-4 right-4 bg-white/90 px-3 py-1 rounded-full text-[10px] font-bold text-gray-400 border border-gray-100">
+						{currentImageIndex + 1} / {images.length}
+					</div>
+				{/if}
+			</div>
+
+			<div class="mt-6 text-center w-full px-2 mb-8">
 				<h1 class="text-2xl font-[1000] text-gray-900 uppercase italic leading-none mb-1">
 					{product.descripcion}
 				</h1>
@@ -54,42 +105,31 @@
 
 			<a
 				href="/"
-				class="flex items-center gap-2 bg-[#ff5000] text-white px-8 py-3 rounded-full font-black uppercase tracking-widest text-[10px] md:text-xs shadow-lg hover:scale-105 transition-transform hover:bg-[#ff6600]"
+				class="flex items-center gap-2 bg-[#ff5000] text-white px-8 py-3 rounded-full font-black uppercase tracking-widest text-[10px] md:text-xs shadow-lg hover:scale-105 transition-transform"
 			>
-				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
 				Volver al catálogo
 			</a>
 
 		</main>
 
 		{#if zoom}
-			<div
-				class="fixed inset-0 z-[9999] bg-white flex items-center justify-center animate-in fade-in duration-200"
-				role="dialog"
-				aria-modal="true"
-			>
-				<button
-					type="button"
-					class="absolute top-6 right-6 z-[10000] p-4 bg-gray-100 rounded-full text-black shadow-lg active:scale-90 transition-transform"
-					on:click|stopPropagation={() => zoom = false}
-					aria-label="Cerrar zoom"
-				>
-					<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+			<div class="fixed inset-0 z-[9999] bg-black/95 flex flex-col justify-center animate-in fade-in">
+				<button class="absolute top-6 right-6 z-[10000] text-white p-4" on:click={() => zoom = false}>
+					✖
 				</button>
-
-				<div class="absolute inset-0 bg-white" on:click={() => zoom = false}></div>
-
-				<img
-					src={foto}
-					alt=""
-					class="relative z-10 w-full h-full object-contain p-2 pointer-events-none select-none"
-				/>
-
-				<div class="absolute bottom-10 z-10 pointer-events-none">
-					<p class="text-[10px] font-black text-gray-300 uppercase tracking-[0.5em] bg-white/90 px-3 py-1 rounded-full">Modo Captura 📸</p>
+				<div class="w-full h-3/4 flex overflow-x-auto snap-x snap-mandatory items-center no-scrollbar">
+					{#each images as img}
+						<img src={img} alt="" class="w-full h-full object-contain flex-shrink-0 snap-center p-2" />
+					{/each}
 				</div>
+				<p class="text-white text-center mt-4 text-xs font-bold uppercase tracking-widest">Desliza para ver más</p>
 			</div>
 		{/if}
 
 	</div>
 {/if}
+
+<style>
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+</style>
