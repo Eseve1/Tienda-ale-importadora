@@ -50,13 +50,13 @@
 
 		const nombre = (product.name || product.descripcion).toUpperCase();
 
-		// --- MENSAJE LIMPIO ---
+		// --- MENSAJE FINAL (Solo cotización y pregunta de envío) ---
 		const mensaje = `Hola AleImport! Cotizacion (Ref: ${product.codigo || 'S/N'}):\n\n` +
 			`PRODUCTO: ${nombre}\n` +
 			`CANTIDAD MINIMA: ${minQty} unidades\n` +
 			`PRECIO UNIDAD X MAYOR: Bs. ${precioDisplay}\n` +
 			`TOTAL COMPRA: Bs. ${inversionTotal}\n\n` +
-			`AVISO: Entiendo que este precio es exclusivo por mayor.`;
+			`¿Tienes disponible para envío inmediato?`;
 
 		window.open(`https://wa.me/59161333335?text=${encodeURIComponent(mensaje)}`, '_blank');
 	}
