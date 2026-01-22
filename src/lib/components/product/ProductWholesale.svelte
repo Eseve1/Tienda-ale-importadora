@@ -8,16 +8,17 @@
 	$: precioDisplay = pMayor.toFixed(2);
 	$: esOfertaRelampago = pMayor <= 10;
 	$: minQty = product?.moq || 3;
+
+	// Cálculo automático
 	$: inversionTotal = (pMayor * minQty).toFixed(2);
 
 	// --- 2. LÓGICA DE AGOTADO ---
 	$: estaAgotado = product.disponible === false || product.stock === 0;
 
-	// --- 3. LÓGICA DE IMÁGENES (CORREGIDA SIN TOCAR DISEÑO) ---
-	// Ahora apuntamos directo a tus columnas de la base de datos
+	// --- 3. LÓGICA DE IMÁGENES ---
 	$: mainImage = product.imagen;
 	$: secondImage = product.imagen2;
-	$: hasSecondImage = !!product.imagen2; // ¿Tiene segunda foto?
+	$: hasSecondImage = !!product.imagen2;
 
 	let mostrarZoom = false;
 
@@ -54,7 +55,10 @@
 		if (estaAgotado) return;
 
 		const nombre = formatearTexto(product.name || product.descripcion);
+
+		// MENSAJE CON "TOTAL COMPRA"
 		const mensaje = `Hola AleImport! 👋 Cotización (Ref: ${product.codigo || 'S/N'}):\n\n📌 *${nombre}*\n📦 Cantidad: *${minQty} unidades*\n💰 Precio Unitario: *Bs. ${precioDisplay}*\n💵 Total Compra: *Bs. ${inversionTotal}*\n\n¿Disponibilidad inmediata?`;
+
 		const numero = "59161333335";
 		const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
 		window.open(url, '_blank');
@@ -164,7 +168,7 @@
 
 			{#if !estaAgotado}
 				<div class="flex justify-between items-center bg-[#FFF8E1] px-3 py-1.5 rounded-lg border border-yellow-200 mb-3">
-					<span class="text-[9px] font-bold text-gray-500 uppercase tracking-wide">TOTAL CAJA:</span>
+					<span class="text-[9px] font-bold text-gray-500 uppercase tracking-wide">TOTAL COMPRA:</span>
 					<span class="text-sm font-black text-[#FF6600]">Bs. {inversionTotal}</span>
 				</div>
 			{/if}
