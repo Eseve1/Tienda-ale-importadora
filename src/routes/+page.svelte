@@ -8,92 +8,128 @@
 	const DATABASE_ID = "692ee774002e9a3c8601";
 	const COLLECTION_ID = "catalogo";
 
-	// --- 2. ESTADO ---
-	let productosBase = [];
-	let loading = true;
+	// --- 2. ESTADO (Tipos corregidos para evitar errores de TS) ---
+	let productos: any[] = []; // Corregido: any[]
+	let loading = false;
+	let hasMore = true;
+	let lastId: string | null = null; // Corregido: tipo explícito
 
 	let searchTerm = "";
 	let catActual = "Todo";
 	let showBackToTop = false;
-	let selectedProduct = null;
+	let selectedProduct: any = null;
+	let debounceTimer: any;
 
 	const categorias = [
 		"Todo", "Belleza y salud", "Herramientas", "Hogar y cocina",
 		"Infantil", "Moda y equipaje", "Oficina y escolar", "Tecnología"
 	];
 
-	// --- 3. CARGA DE DATOS (FILTRO SERVIDOR) ---
-	onMount(async () => {
-		const client = new Client()
-			.setEndpoint("https://cloud.appwrite.io/v1")
-			.setProject(PROJECT_ID);
+	// Cliente solo para el navegador
+	const client = new Client()
+		.setEndpoint("https://cloud.appwrite.io/v1")
+		.setProject(PROJECT_ID);
+	const db = new Databases(client);
 
-		const db = new Databases(client);
+	// --- 3. LÓGICA DE CARGA OPTIMIZADA ---
+	async function cargarProductos(reset = false) {
+		if (loading) return;
+		loading = true;
+
+		if (reset) {
+			productos = [];
+			lastId = null;
+			hasMore = true;
+		}
 
 		try {
-			const res = await db.listDocuments(
-				DATABASE_ID,
-				COLLECTION_ID,
-				[
-					Query.equal("disponible", true), // Solo trae lo activo
-					Query.limit(5000),
-					Query.orderDesc('$createdAt')
-				]
-			);
-			productosBase = res.documents.sort(() => 0.5 - Math.random());
+			let queries = [
+				Query.equal("disponible", true),
+				Query.limit(20), // AHORRO: Carga de 20 en 20
+				Query.orderDesc('$createdAt')
+			];
+
+			// Filtro Categoría
+			if (catActual !== "Todo") {
+				queries.push(Query.equal("categoria", catActual));
+			}
+
+			// BÚSQUEDA INTELIGENTE (Usa tu nuevo índice)
+			if (searchTerm && searchTerm.trim().length > 0) {
+				queries.push(Query.search("descripcion", searchTerm));
+			}
+
+			// Paginación
+			if (lastId) {
+				queries.push(Query.cursorAfter(lastId));
+			}
+
+			const res = await db.listDocuments(DATABASE_ID, COLLECTION_ID, queries);
+
+			// Lógica de "Fin del catálogo"
+			if (res.documents.length < 20) {
+				hasMore = false;
+			}
+
+			if (res.documents.length > 0) {
+				lastId = res.documents[res.documents.length - 1].$id;
+				// Spread operator seguro
+				productos = [...productos, ...res.documents];
+			} else if (reset) {
+				// Si reseteamos y no hay nada, no hay más
+				hasMore = false;
+			}
+
 		} catch (error) {
 			console.error("Error cargando productos:", error);
 		} finally {
 			loading = false;
 		}
-	});
-
-	// --- 4. FILTRO VISUAL ---
-	function normalizar(texto) {
-		return (texto || "").toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
 	}
 
-	$: mayoristasFiltrados = productosBase.filter(p => {
-		const nombre = normalizar(p.descripcion || p.name);
-		const codigo = normalizar(p.codigo);
-		const catProd = normalizar(p.categoria || p.category);
-
-		const busqueda = normalizar(searchTerm);
-		const catFiltro = normalizar(catActual);
-
-		const matchTexto = !searchTerm || nombre.includes(busqueda) || codigo.includes(busqueda) || catProd.includes(busqueda);
-		const matchCat = catActual === "Todo" || catProd.includes(catFiltro) || catFiltro.includes(catProd);
-
-		return matchTexto && matchCat;
+	// --- 4. CONTROLADORES ---
+	onMount(() => {
+		cargarProductos(true);
+		window.onpopstate = () => {
+			if (selectedProduct) {
+				selectedProduct = null;
+				document.body.style.overflow = '';
+			}
+		};
 	});
 
-	// --- ACCIONES UI ---
-	function seleccionarCategoria(cat) {
+	function seleccionarCategoria(cat: string) {
 		catActual = cat;
 		searchTerm = "";
-		window.scrollTo({ top: 0, behavior: 'smooth' });
+		cargarProductos(true);
 	}
 
-	function alEscribir() {} // Reactivo
+	function alEscribir() {
+		clearTimeout(debounceTimer);
+		// Debounce de 800ms para no saturar peticiones
+		debounceTimer = setTimeout(() => { cargarProductos(true); }, 800);
+	}
 
-	// --- MODAL Y SCROLL ---
-	function abrirModal(p) { selectedProduct = p; history.pushState({ modalOpen: true }, "", ""); document.body.style.overflow = 'hidden'; }
-	function cerrarModal() { selectedProduct = null; document.body.style.overflow = ''; if (history.state?.modalOpen) history.back(); }
+	// --- UI ACTIONS ---
+	function abrirModal(p: any) {
+		selectedProduct = p;
+		history.pushState({ modalOpen: true }, "", "");
+		document.body.style.overflow = 'hidden';
+	}
+
+	function cerrarModal() {
+		selectedProduct = null;
+		document.body.style.overflow = '';
+		if (history.state?.modalOpen) history.back();
+	}
+
 	function handleScroll() { showBackToTop = window.scrollY > 300; }
 	function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
-
-	onMount(() => {
-		window.onpopstate = () => { if (selectedProduct) { selectedProduct = null; document.body.style.overflow = ''; } };
-	});
 </script>
 
 <svelte:head>
 	<title>Ale Importadora Bolivia | Mayorista y Precios de Fábrica</title>
-	<meta name="description" content="Catálogo mayorista oficial de Ale Importadora Bolivia. Envíos a todo el país, precios de fábrica y venta por cajas cerradas." />
-	<meta name="keywords" content="mayorista bolivia, importadora ale, precios por mayor, santa cruz, revendedores, importacion directa, cajas cerradas" />
-	<meta property="og:title" content="Ale Importadora - Catálogo Mayorista" />
-	<meta property="og:description" content="Mira nuestro stock actualizado y cotiza directamente al WhatsApp." />
-	<meta property="og:image" content="https://importadoraale.app/favicon.png" />
+	<meta name="description" content="Catálogo mayorista oficial. Envíos a todo Bolivia." />
 	<meta name="theme-color" content="#FF6600" />
 </svelte:head>
 
@@ -110,16 +146,17 @@
 	<header class="sticky top-0 z-[100] bg-white border-b border-gray-200 px-4 py-3 shadow-md h-[70px] flex items-center">
 		<div class="max-w-[1400px] mx-auto flex items-center gap-3 w-full">
 			{#if searchTerm}
-				<button class="bg-gray-100 p-2.5 rounded-full hover:bg-gray-200 transition-colors" on:click={() => searchTerm = ''}>✕</button>
+				<button class="bg-gray-100 p-2.5 rounded-full hover:bg-gray-200 transition-colors" on:click={() => {searchTerm = ''; cargarProductos(true);}}>✕</button>
 			{/if}
 			<div class="flex-1 flex items-center bg-gray-50 rounded-lg border border-gray-300 focus-within:border-[#FF6600] focus-within:ring-1 focus-within:ring-[#FF6600] h-[42px] overflow-hidden transition-all">
-				<input type="text" bind:value={searchTerm} on:input={alEscribir} placeholder="Buscar por nombre, código..." class="w-full px-4 text-sm font-medium outline-none h-full bg-transparent text-gray-800"/>
+				<input type="text" bind:value={searchTerm} on:input={alEscribir} placeholder="Buscar producto (ej: Licuadora)..." class="w-full px-4 text-sm font-medium outline-none h-full bg-transparent text-gray-800"/>
 				<div class="bg-white h-full px-4 flex items-center justify-center text-[#FF6600] border-l border-gray-200">🔍</div>
 			</div>
 		</div>
 	</header>
 
 	<div class="max-w-[1400px] mx-auto p-2 md:p-6 flex-1 w-full space-y-4">
+
 		<div class="relative rounded-xl overflow-hidden shadow-md mt-2 group cursor-default">
 			<div class="absolute inset-0 bg-gradient-to-r from-[#FF6600] to-[#2d2d2d]"></div>
 			<div class="relative z-10 px-6 py-8 md:px-10 md:py-10 text-white flex flex-col justify-center items-start h-full">
@@ -133,35 +170,43 @@
 			<div class="sticky top-[69px] z-50 bg-[#f4f5f7]/95 backdrop-blur-sm py-3 -mx-2 px-2 md:mx-0 shadow-sm transition-all border-b border-gray-200/50">
 				<div class="flex justify-between items-center mb-2 px-1">
 					<h2 class="text-lg md:text-2xl font-bold text-[#333] border-l-[4px] border-[#FF6600] pl-3 leading-none flex flex-col">
-						<span class="text-[9px] text-[#FF6600] uppercase font-bold tracking-widest mb-0.5">★ CATÁLOGO MAYORISTA ★</span>
-						{#if searchTerm}Resultados{:else}{catActual}{/if}
+						<span class="text-[9px] text-[#FF6600] uppercase font-bold tracking-widest mb-0.5">★ CATÁLOGO ★</span>
+						{catActual}
 					</h2>
-					{#if catActual !== 'Todo' || searchTerm}
-						<button class="text-[10px] bg-white border border-red-200 text-red-500 px-3 py-1 rounded-full font-bold hover:bg-red-50 transition-colors flex items-center gap-1 shadow-sm" on:click={() => { seleccionarCategoria('Todo'); searchTerm=''; }}>Borrar filtro <span class="text-xs">✕</span></button>
+					{#if catActual !== 'Todo'}
+						<button class="text-[10px] bg-white border border-red-200 text-red-500 px-3 py-1 rounded-full font-bold hover:bg-red-50 transition-colors flex items-center gap-1 shadow-sm" on:click={() => seleccionarCategoria('Todo')}>Borrar filtro ✕</button>
 					{/if}
 				</div>
 				<div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
 					{#each categorias as cat}
-						<button class="whitespace-nowrap px-4 py-2 rounded-lg font-bold text-[11px] border transition-all shadow-sm active:scale-95 {catActual === cat && !searchTerm ? 'bg-[#FF6600] text-white border-[#FF6600] shadow-md' : 'bg-white text-gray-600 border-gray-200 hover:border-[#FF6600] hover:text-[#FF6600]'}" on:click={() => seleccionarCategoria(cat)}>{cat}</button>
+						<button class="whitespace-nowrap px-4 py-2 rounded-lg font-bold text-[11px] border transition-all shadow-sm active:scale-95 {catActual === cat ? 'bg-[#FF6600] text-white border-[#FF6600] shadow-md' : 'bg-white text-gray-600 border-gray-200'}" on:click={() => seleccionarCategoria(cat)}>{cat}</button>
 					{/each}
 				</div>
 			</div>
 
-			<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 md:gap-4 pb-20 mt-4">
+			<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 md:gap-4 mt-4">
+				{#each productos as product (product.$id)}
+					<div on:click={() => abrirModal(product)} class="cursor-pointer h-full">
+						<WholesaleCard {product} />
+					</div>
+				{/each}
+			</div>
+
+			<div class="col-span-full py-10 flex flex-col items-center justify-center">
 				{#if loading}
-					<div class="col-span-full py-20 text-center text-gray-400 font-bold animate-pulse">Cargando inventario...</div>
+					<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF6600] mb-4"></div>
+					<p class="text-gray-400 text-xs font-bold uppercase animate-pulse">Cargando...</p>
+				{:else if hasMore}
+					<button on:click={() => cargarProductos(false)} class="bg-[#FF6600] text-white font-bold py-3 px-10 rounded-full shadow-lg hover:bg-[#e55b00] hover:scale-105 transition-all transform flex items-center gap-2">
+						⬇ Ver más productos
+					</button>
+				{:else if productos.length === 0}
+					<div class="text-center text-gray-400">
+						<p>No se encontraron productos.</p>
+						<button class="mt-4 text-[#FF6600] text-xs font-bold uppercase border-b border-[#FF6600]" on:click={() => {catActual='Todo'; searchTerm=''; cargarProductos(true);}}>Ver todo</button>
+					</div>
 				{:else}
-					{#each mayoristasFiltrados as product (product.$id)}
-						<div on:click={() => abrirModal(product)} class="cursor-pointer h-full">
-							<WholesaleCard {product} />
-						</div>
-					{:else}
-						<div class="col-span-full py-20 text-center flex flex-col items-center">
-							<div class="bg-white p-4 rounded-full shadow-sm mb-4">🔍</div>
-							<p class="text-gray-500 font-medium text-sm">No encontramos productos.</p>
-							<button class="mt-4 text-[#FF6600] text-xs font-bold uppercase border-b border-[#FF6600]" on:click={() => {catActual='Todo'; searchTerm='';}}>Ver todo</button>
-						</div>
-					{/each}
+					<p class="text-gray-300 text-xs font-bold uppercase mt-4">--- Fin del catálogo ---</p>
 				{/if}
 			</div>
 		</section>
@@ -181,7 +226,7 @@
 
 	<div class="fixed bottom-5 right-5 z-[200] flex flex-col gap-3 items-end pointer-events-none">
 		{#if showBackToTop}
-			<button on:click={scrollToTop} class="pointer-events-auto bg-white text-[#FF6600] w-12 h-12 rounded-full shadow-lg border border-gray-200 flex items-center justify-center animate-in fade-in zoom-in hover:scale-110 transition-transform">
+			<button on:click={scrollToTop} class="pointer-events-auto bg-white text-[#FF6600] w-12 h-12 rounded-full shadow-lg border border-gray-200 flex items-center justify-center hover:scale-110 transition-transform">
 				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 12a.5.5 0 0 0 .5-.5V5.707l2.146 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708 0l-3 3a.5.5 0 1 0 .708.708L7.5 5.707V11.5a.5.5 0 0 0 .5.5"/></svg>
 			</button>
 		{/if}
