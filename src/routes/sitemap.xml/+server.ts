@@ -22,7 +22,7 @@ export async function GET({ url }) {
 		const response = await databases.listDocuments(
 			DATABASE_ID,
 			COLLECTION_ID,
-			[Query.limit(100)]
+			[Query.limit(1000)]
 		);
 
 		products = response.documents;
