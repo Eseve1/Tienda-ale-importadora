@@ -3,20 +3,49 @@
 	import { fly } from 'svelte/transition';
 	export let product;
 
-	// --- 1. LÓGICA DE NEGOCIO ---
+	// --- 1. CONFIGURACIÓN ---
+	const PROJECT_ID = "692ee6b70012153cd33c"; // Tu ID real
+
+	// --- 2. LÓGICA DE NEGOCIO ---
 	$: pMayor = parseFloat(product?.preciopormayor || product?.price || 0);
 	$: precioDisplay = pMayor.toFixed(2);
 	$: minQty = product?.moq || 3;
 	$: inversionTotal = (pMayor * minQty).toFixed(2);
 	$: estaAgotado = product.disponible === false || product.stock === 0;
 
-	// --- 2. IMÁGENES ---
-	$: mainImage = product.imagen;
-	$: secondImage = product.imagen2;
+	// --- 3. IMÁGENES OPTIMIZADAS (Modo Ahorro 50GB) ---
 
-	// Variable para controlar qué foto se ve en el Modal
+	// Función segura: Si la URL no es de Appwrite, la devuelve tal cual.
+	function optimizar(url, ancho = 400) {
+		if (!url || typeof url !== 'string' || !url.includes('/storage/buckets/')) {
+			return url;
+		}
+
+		try {
+			// Extraemos los IDs de la URL original
+			const parts = url.split('/storage/buckets/')[1].split('/');
+			const bucketId = parts[0];
+			const fileId = parts[2];
+
+			// Retornamos la URL mágica: WebP + Calidad 80 + Redimensionada
+			return `https://cloud.appwrite.io/v1/storage/buckets/${bucketId}/files/${fileId}/preview?width=${ancho}&quality=80&output=webp&project=${PROJECT_ID}`;
+		} catch (e) {
+			// Si algo falla, mostramos la original para no romper nada
+			return url;
+		}
+	}
+
+	// Generamos las versiones ligeras automáticamente
+	$: mainImage = optimizar(product.imagen, 400);
+	$: secondImage = optimizar(product.imagen2, 400);
+
+	// Variable para el Zoom (usará versión de alta calidad después)
 	let activeImage;
+	// Si activeImage tiene valor, la optimizamos a 800px, si no, nada.
+	$: activeImageOptimized = activeImage ? optimizar(activeImage, 800) : mainImage;
 
+
+	// --- 4. INTERFAZ Y ETIQUETAS ---
 	let indexEtiqueta = 0;
 	let intervalo;
 	let mostrarZoom = false;
@@ -40,8 +69,7 @@
 
 	function abrirZoom(e) {
 		if (e) { e.preventDefault(); e.stopPropagation(); }
-		// Al abrir, siempre mostramos la principal primero
-		activeImage = mainImage;
+		activeImage = product.imagen; // Iniciamos con la original (el optimizador la mejora arriba)
 		mostrarZoom = true;
 	}
 
@@ -83,7 +111,7 @@
 			<button class="absolute top-2 right-2 z-10 bg-gray-100 hover:bg-red-100 rounded-full p-2 font-bold" on:click={cerrarZoom}>✕</button>
 
 			<div class="bg-[#f8f8f8] rounded-lg overflow-hidden mb-2 relative">
-				<img src={activeImage} alt="" class="w-full h-auto object-contain max-h-[45vh] sm:max-h-[50vh] {estaAgotado ? 'grayscale' : ''}" />
+				<img src={activeImageOptimized} alt="" class="w-full h-auto object-contain max-h-[45vh] sm:max-h-[50vh] {estaAgotado ? 'grayscale' : ''}" />
 
 				{#if estaAgotado}
 					<div class="absolute inset-0 flex items-center justify-center bg-white/50">
@@ -95,14 +123,14 @@
 			{#if secondImage}
 				<div class="flex justify-center gap-3 mb-4">
 					<button
-						class="w-12 h-12 rounded-md overflow-hidden border-2 transition-all {activeImage === mainImage ? 'border-[#ff4400] scale-105' : 'border-gray-200 opacity-60'}"
-						on:click={() => activeImage = mainImage}
+						class="w-12 h-12 rounded-md overflow-hidden border-2 transition-all {activeImage === product.imagen ? 'border-[#ff4400] scale-105' : 'border-gray-200 opacity-60'}"
+						on:click={() => activeImage = product.imagen}
 					>
 						<img src={mainImage} class="w-full h-full object-cover" alt="Principal" />
 					</button>
 					<button
-						class="w-12 h-12 rounded-md overflow-hidden border-2 transition-all {activeImage === secondImage ? 'border-[#ff4400] scale-105' : 'border-gray-200 opacity-60'}"
-						on:click={() => activeImage = secondImage}
+						class="w-12 h-12 rounded-md overflow-hidden border-2 transition-all {activeImage === product.imagen2 ? 'border-[#ff4400] scale-105' : 'border-gray-200 opacity-60'}"
+						on:click={() => activeImage = product.imagen2}
 					>
 						<img src={secondImage} class="w-full h-full object-cover" alt="Secundaria" />
 					</button>

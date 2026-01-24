@@ -1,11 +1,9 @@
 import { Client, Databases, Query } from 'appwrite';
 
-// 1. CONFIGURACIÓN (Blindada para el build)
 const PROJECT_ID = "692ee6b70012153cd33c";
 const DATABASE_ID = "692ee774002e9a3c8601";
 const COLLECTION_ID = "catalogo";
 
-// Definimos las categorías aquí para evitar el error "Cannot find module '$lib/store'"
 const categoriasSitemap = [
 	"Belleza y salud", "Herramientas", "Hogar y cocina",
 	"Infantil", "Moda y equipaje", "Oficina y escolar", "Tecnología"
@@ -20,8 +18,8 @@ let sitemapCache: string | null = null;
 let lastCache = 0;
 
 export async function GET({ url }) {
-	// Optimización: Caché de 15 min para no quemar lecturas en cada rastreo
-	if (sitemapCache && Date.now() - lastCache < 15 * 60 * 1000) {
+	// MEJORA 1: Subimos el caché interno a 60 minutos
+	if (sitemapCache && Date.now() - lastCache < 60 * 60 * 1000) {
 		return new Response(sitemapCache, {
 			headers: { 'Content-Type': 'application/xml' }
 		});
@@ -29,9 +27,11 @@ export async function GET({ url }) {
 
 	let products: any[] = [];
 	try {
-		// Optimización Ebenezer Don: Solo pedimos el ID (reducción de carga)
 		const response = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [
-			Query.limit(1000)
+			Query.limit(1000),
+			// MEJORA 2: ¡ESTO ES ORO! Solo traemos el ID.
+			// Reduce el peso de la respuesta de la BD en un 99%.
+			Query.select(['$id'])
 		]);
 		products = response.documents;
 	} catch (err) {
@@ -51,6 +51,7 @@ export async function GET({ url }) {
 	return new Response(body, {
 		headers: {
 			'Content-Type': 'application/xml',
+			// Cache público de 24 horas
 			'Cache-Control': 'public, max-age=0, s-maxage=86400'
 		}
 	});
@@ -58,7 +59,10 @@ export async function GET({ url }) {
 
 function generateXML(origin: string, pages: string[]) {
 	const urls = pages.map(p => {
-		const loc = p ? `${origin}/${p}` : `${origin}/`;
+		// Evita dobles slashes si origin ya trae uno
+		const cleanOrigin = origin.endsWith('/') ? origin.slice(0, -1) : origin;
+		const loc = p ? `${cleanOrigin}/${p}` : `${cleanOrigin}/`;
+
 		return `  <url>
     <loc>${loc}</loc>
     <changefreq>daily</changefreq>
