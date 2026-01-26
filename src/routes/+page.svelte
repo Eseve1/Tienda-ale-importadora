@@ -116,7 +116,7 @@
 	<meta property="og:url" content="https://importadoraale.app/" />
 	<meta property="og:title" content="🔥 Catálogo Mayorista 2026 - Ale Importadora" />
 	<meta property="og:description" content="Ver catálogo completo con precios de fábrica. Envíos a todo Bolivia. Haz clic para ver novedades." />
-	<meta property="og:image" content="https://cloud.appwrite.io/v1/storage/buckets/692ee6e00021e93c8601/files/TU_LOGO_ID_AQUI/view?project=692ee6b70012153cd33c" />
+	<meta property="og:image" content="https://cloud.appwrite.io/v1/storage/buckets/692ee6e00021e93c8601/files/6794637d003885021118/view?project=692ee6b70012153cd33c" />
 	<meta property="og:image:width" content="1200" />
 	<meta property="og:image:height" content="630" />
 </svelte:head>
@@ -188,36 +188,37 @@
 
 	{#if selectedProduct}
 		<div class="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200" on:click={cerrarModal}>
-			<div class="bg-white w-full max-w-3xl rounded-2xl overflow-hidden relative flex flex-col md:flex-row shadow-2xl animate-in zoom-in-95 duration-200 h-[80vh] md:h-auto" on:click|stopPropagation>
-				<button class="absolute top-3 right-3 z-20 bg-gray-100 hover:bg-red-100 rounded-full p-2 transition-colors" on:click={cerrarModal}>✕</button>
+			<div class="bg-white w-full max-w-3xl rounded-2xl overflow-hidden relative flex flex-col md:flex-row shadow-2xl animate-in zoom-in-95 duration-200 max-h-[90vh] md:h-auto overflow-y-auto md:overflow-visible" on:click|stopPropagation>
 
-				<div class="w-full md:w-1/2 bg-gray-50 flex flex-col items-center justify-center p-6 border-r border-gray-100">
-					<div class="w-full h-[250px] md:h-[350px] flex items-center justify-center mb-4">
+				<button class="absolute top-3 right-3 z-30 bg-gray-100 hover:bg-red-100 rounded-full p-2 transition-colors shadow-sm" on:click={cerrarModal}>✕</button>
+
+				<div class="w-full md:w-1/2 bg-gray-50 flex flex-col items-center justify-center p-4 md:p-6 border-b md:border-b-0 md:border-r border-gray-100 relative">
+					<div class="w-full h-[180px] sm:h-[220px] md:h-[350px] flex items-center justify-center mb-4 mt-6 md:mt-0">
 						<img src={activeModalImage || selectedProduct.imagen} alt="" class="max-w-full max-h-full object-contain mix-blend-multiply transition-all duration-300" />
 					</div>
 
 					{#if selectedProduct.imagen2}
-						<div class="flex gap-3">
-							<button on:click={() => activeModalImage = selectedProduct.imagen} class="w-14 h-14 border-2 rounded-lg overflow-hidden transition-all {activeModalImage === selectedProduct.imagen ? 'border-[#FF6600]' : 'border-gray-200 opacity-60 hover:opacity-100'}">
+						<div class="flex gap-3 mb-2 md:mb-0">
+							<button on:click={() => activeModalImage = selectedProduct.imagen} class="w-12 h-12 md:w-14 md:h-14 border-2 rounded-lg overflow-hidden transition-all {activeModalImage === selectedProduct.imagen ? 'border-[#FF6600]' : 'border-gray-200 opacity-60 hover:opacity-100'}">
 								<img src={selectedProduct.imagen} alt="" class="w-full h-full object-cover"/>
 							</button>
-							<button on:click={() => activeModalImage = selectedProduct.imagen2} class="w-14 h-14 border-2 rounded-lg overflow-hidden transition-all {activeModalImage === selectedProduct.imagen2 ? 'border-[#FF6600]' : 'border-gray-200 opacity-60 hover:opacity-100'}">
+							<button on:click={() => activeModalImage = selectedProduct.imagen2} class="w-12 h-12 md:w-14 md:h-14 border-2 rounded-lg overflow-hidden transition-all {activeModalImage === selectedProduct.imagen2 ? 'border-[#FF6600]' : 'border-gray-200 opacity-60 hover:opacity-100'}">
 								<img src={selectedProduct.imagen2} alt="" class="w-full h-full object-cover"/>
 							</button>
 						</div>
 					{/if}
 				</div>
 
-				<div class="w-full md:w-1/2 p-6 md:p-8 flex flex-col overflow-y-auto">
+				<div class="w-full md:w-1/2 p-5 md:p-8 flex flex-col">
 					<span class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">{selectedProduct.categoria || 'Producto'}</span>
-					<h2 class="text-xl md:text-2xl font-black text-gray-800 leading-tight mb-4">{selectedProduct.descripcion}</h2>
+					<h2 class="text-lg md:text-2xl font-black text-gray-800 leading-tight mb-4">{selectedProduct.descripcion}</h2>
 
-					<div class="bg-orange-50 border border-orange-100 rounded-xl p-4 mb-6">
+					<div class="bg-orange-50 border border-orange-100 rounded-xl p-4 mb-5">
 						<div class="text-xs text-orange-600 font-bold uppercase mb-1">Precio Mayorista</div>
-						<div class="text-4xl font-black text-[#FF6600]">Bs. {selectedProduct.preciopormayor}</div>
+						<div class="text-3xl md:text-4xl font-black text-[#FF6600]">Bs. {selectedProduct.preciopormayor}</div>
 					</div>
 
-					<div class="space-y-3 text-sm text-gray-600 mb-8 flex-1">
+					<div class="space-y-3 text-sm text-gray-600 mb-6 flex-1">
 						<div class="flex justify-between border-b border-gray-100 pb-2">
 							<span>Código Ref:</span>
 							<span class="font-mono font-bold text-gray-800">{selectedProduct.codigo || 'S/N'}</span>
@@ -232,7 +233,7 @@
 						</div>
 					</div>
 
-					<button on:click={addFromModal} class="mt-auto w-full bg-[#FF6600] text-white py-4 rounded-xl font-bold uppercase tracking-wide shadow-lg shadow-orange-200 hover:bg-[#e55b00] hover:scale-[1.02] transition-all flex items-center justify-center gap-2">
+					<button on:click={addFromModal} class="mt-auto w-full bg-[#FF6600] text-white py-3.5 md:py-4 rounded-xl font-bold uppercase tracking-wide shadow-lg shadow-orange-200 hover:bg-[#e55b00] hover:scale-[1.02] transition-all flex items-center justify-center gap-2 text-sm md:text-base">
 						<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM3.102 4l1.313 7h8.17l1.313-7H3.102zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/></svg>
 						Añadir al Pedido
 					</button>
