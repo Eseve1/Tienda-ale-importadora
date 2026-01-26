@@ -1,144 +1,118 @@
 <script lang="ts">
 	import { cart } from '$lib/stores/cart.svelte';
-	import { Content, Header, Root, SheetClose, Title, Trigger } from '$lib/components/ui/sheet';
-	import CartList from '$lib/components/cart/CartList.svelte';
-	import { theme } from '$lib/stores/theme.svelte';
+	import { Content, Header, Root, Title, Trigger } from '$lib/components/ui/sheet';
 
-	let previousCount = $state(0);
-	let isAnimating = $state(false);
+	const PHONE_NUMBER = "59161333335";
 
-	$effect(() => {
-		const currentCount = cart.getTotalItems();
-		if (cart.getIsLoaded() && previousCount !== currentCount) {
-			isAnimating = true;
-			previousCount = currentCount;
-
-			setTimeout(() => {
-				isAnimating = false;
-			}, 300);
+	function optimizar(url: string) {
+		if (!url) return '/placeholder.png';
+		if (url.includes('cloud.appwrite.io')) {
+			return `${url}&width=150&quality=80&output=webp`;
 		}
-	});
+		return url;
+	}
+
+	function enviarPedido() {
+		if (cart.items.length === 0) return;
+
+		let msg = `Hola *Ale Importadora*, quiero cotizar este pedido:%0A%0A`;
+
+		cart.items.forEach((item) => {
+			const ref = item.product.codigo || 'S/N';
+			const nombre = item.product.descripcion || item.product.name;
+			const subtotal = (item.price * item.quantity).toFixed(2);
+			msg += `— *${item.quantity}x* ${nombre} (Ref: ${ref}) TOTAL: Bs. ${subtotal}%0A`;
+		});
+
+		msg += `%0A*TOTAL APROX: Bs. ${cart.total.toFixed(2)}*%0A`;
+		msg += `Quedo a la espera de confirmación.`;
+
+		window.open(`https://wa.me/${PHONE_NUMBER}?text=${msg}`, '_blank');
+	}
 </script>
 
-<div class="flex">
-	<Root open={cart.getIsOpen()} onOpenChange={(value) => cart.setIsOpen(value)}>
-		<Trigger>
-			<button class="flex items-center gap-2">
-				<!-- Cart Icon -->
-				<!--suppress HtmlUnknownTag -->
-				<div class:cart-text={cart.getTotalItems()} class="flex items-center gap-1">
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						width="20"
-						height="20"
-						viewBox="0 0 20 20"
-						fill="none"
-					>
-						<path
-							d="M13.125 8.75V5C13.125 4.1712 12.7957 3.37634 12.2097 2.79029C11.6236 2.20424 10.8288 1.875 9.99999 1.875C9.17119 1.875 8.37633 2.20424 7.79028 2.79029C7.20423 3.37634 6.87499 4.1712 6.87499 5V8.75M16.3383 7.08917L17.3908 17.0892C17.4492 17.6433 17.0158 18.125 16.4583 18.125H3.54165C3.41016 18.1251 3.28011 18.0976 3.15994 18.0442C3.03978 17.9908 2.93219 17.9127 2.84417 17.8151C2.75615 17.7174 2.68967 17.6023 2.64903 17.4772C2.6084 17.3521 2.59453 17.2199 2.60832 17.0892L3.66165 7.08917C3.68595 6.8588 3.79468 6.64558 3.96686 6.49063C4.13905 6.33568 4.36251 6.24996 4.59415 6.25H15.4058C15.8858 6.25 16.2883 6.6125 16.3383 7.08917ZM7.18749 8.75C7.18749 8.83288 7.15456 8.91237 7.09596 8.97097C7.03735 9.02958 6.95787 9.0625 6.87499 9.0625C6.79211 9.0625 6.71262 9.02958 6.65402 8.97097C6.59541 8.91237 6.56249 8.83288 6.56249 8.75C6.56249 8.66712 6.59541 8.58763 6.65402 8.52903C6.71262 8.47042 6.79211 8.4375 6.87499 8.4375C6.95787 8.4375 7.03735 8.47042 7.09596 8.52903C7.15456 8.58763 7.18749 8.66712 7.18749 8.75ZM13.4375 8.75C13.4375 8.83288 13.4046 8.91237 13.346 8.97097C13.2874 9.02958 13.2079 9.0625 13.125 9.0625C13.0421 9.0625 12.9626 9.02958 12.904 8.97097C12.8454 8.91237 12.8125 8.83288 12.8125 8.75C12.8125 8.66712 12.8454 8.58763 12.904 8.52903C12.9626 8.47042 13.0421 8.4375 13.125 8.4375C13.2079 8.4375 13.2874 8.47042 13.346 8.52903C13.4046 8.58763 13.4375 8.66712 13.4375 8.75Z"
-							stroke={theme.isDarkTheme() ? 'white' : 'black'}
-							stroke-width="1.5"
-							stroke-linecap="round"
-							stroke-linejoin="round"
-						/>
-					</svg>
-					<span class="text-[#56565C] dark:text-[#A3A3A0]">Cart</span>
-				</div>
+<div class="z-50 flex">
+	<Root open={cart.isOpen} onOpenChange={(val) => cart.setIsOpen(val)}>
 
-				<!-- Cart Value -->
-				{#if cart.getTotalItems() > 0}
-					<div
-						class="cart-value flex items-center justify-center rounded-md border border-gray-300 bg-gray-100 px-2 py-1 text-sm text-[#56565C] dark:border-[#3F3F46] dark:bg-[#262626] dark:text-[#A3A3A0]"
-						class:animate={isAnimating}
-					>
-						{cart.getTotalItems()}
-					</div>
-				{/if}
-			</button>
+		<Trigger class="relative h-16 w-16 bg-white rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 flex items-center justify-center hover:scale-110 hover:shadow-orange-500/20 transition-all duration-300 group">
+
+			<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-700 group-hover:text-[#FF6600] transition-colors">
+				<circle cx="9" cy="21" r="1"></circle>
+				<circle cx="20" cy="21" r="1"></circle>
+				<path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+			</svg>
+
+			{#if cart.count > 0}
+              <span class="absolute top-0 right-0 bg-[#FF6600] text-white text-[11px] font-bold h-6 w-6 flex items-center justify-center rounded-full shadow-sm border-2 border-white animate-in zoom-in">
+                  {cart.count}
+              </span>
+				<span class="absolute top-0 right-0 bg-[#FF6600] h-6 w-6 rounded-full animate-ping opacity-75"></span>
+			{/if}
 		</Trigger>
-		<Content
-			class="m-6 flex h-full max-h-[calc(100vh-3rem)] flex-col overflow-y-auto rounded-[16px] bg-[rgba(255,255,255)]"
-		>
-			<Header>
+
+		<Content class="flex h-full w-full flex-col bg-white p-0 sm:max-w-md">
+			<Header class="border-b px-6 py-4 bg-gray-50/80 backdrop-blur-sm">
 				<div class="flex items-center justify-between">
-					<Title
-						class="font-inter text-[24px] font-normal tracking-[-0.24px] text-[#2D2D31] dark:text-[#d1d1cd]"
-					>
-						Cart
+					<Title class="text-lg font-bold text-gray-800 flex items-center gap-2">
+						🛒 Tu Pedido
+						<span class="text-sm font-normal text-gray-500 bg-white px-3 py-1 rounded-full border border-gray-200 shadow-sm text-xs">
+                          {cart.count} items
+                      </span>
 					</Title>
-					<SheetClose class="custom-close-icon">
-						<button class="flex h-6 w-6 items-center justify-center" aria-label="Close">
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								width="24"
-								height="24"
-								viewBox="0 0 24 24"
-								fill="none"
-							>
-								<path
-									fill-rule="evenodd"
-									clip-rule="evenodd"
-									d="M5.15128 5.15152C5.61991 4.68289 6.3797 4.68289 6.84833 5.15152L11.9998 10.303L17.1513 5.15152C17.6199 4.68289 18.3797 4.68289 18.8483 5.15152C19.317 5.62015 19.317 6.37995 18.8483 6.84858L13.6969 12L18.8483 17.1515C19.317 17.6202 19.317 18.38 18.8483 18.8486C18.3797 19.3172 17.6199 19.3172 17.1513 18.8486L11.9998 13.6971L6.84833 18.8486C6.3797 19.3172 5.61991 19.3172 5.15128 18.8486C4.68265 18.38 4.68265 17.6202 5.15128 17.1515L10.3027 12L5.15128 6.84858C4.68265 6.37995 4.68265 5.62015 5.15128 5.15152Z"
-									fill={theme.isDarkTheme() ? '#A3A3A0' : '#56565C'}
-								/>
-							</svg>
-						</button>
-					</SheetClose>
 				</div>
 			</Header>
-			<CartList />
+
+			<div class="flex-1 overflow-y-auto px-4 py-2 bg-[#f9fafb]">
+				{#if cart.items.length === 0}
+					<div class="h-full flex flex-col items-center justify-center text-gray-400 opacity-60 gap-4">
+						<div class="bg-gray-100 p-6 rounded-full">
+							<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+						</div>
+						<p class="font-medium">Tu carrito está vacío</p>
+					</div>
+				{:else}
+					<div class="space-y-3 mt-2">
+						{#each cart.items as item (item.slug)}
+							<div class="flex gap-3 bg-white p-3 rounded-2xl border border-gray-100 shadow-sm animate-in slide-in-from-right-5 duration-300">
+								<div class="h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl border border-gray-100 bg-gray-50">
+									<img src={optimizar(item.product.imagen)} alt={item.product.descripcion} class="h-full w-full object-contain mix-blend-multiply" />
+								</div>
+								<div class="flex flex-1 flex-col justify-between">
+									<div class="flex justify-between items-start gap-2">
+										<h4 class="text-xs font-bold text-gray-800 line-clamp-2 leading-tight">
+											{item.product.descripcion || item.product.name}
+										</h4>
+										<button on:click={() => cart.remove(item.product.$id)} class="text-gray-300 hover:text-red-500 p-1 -mr-2 -mt-2 transition-colors">✕</button>
+									</div>
+									<div class="flex items-end justify-between mt-2">
+										<div class="flex items-center bg-gray-50 rounded-lg h-8 border border-gray-200">
+											<button on:click={() => cart.updateQuantity(item.product.$id, -1)} class="w-8 h-full flex items-center justify-center text-gray-500 hover:text-black font-bold text-sm hover:bg-gray-200 rounded-l-lg transition-colors">-</button>
+											<span class="text-xs font-bold w-6 text-center">{item.quantity}</span>
+											<button on:click={() => cart.updateQuantity(item.product.$id, 1)} class="w-8 h-full flex items-center justify-center text-gray-500 hover:text-black font-bold text-sm hover:bg-gray-200 rounded-r-lg transition-colors">+</button>
+										</div>
+										<div class="text-right">
+											<div class="text-[10px] text-gray-400 font-medium uppercase">Subtotal</div>
+											<div class="text-sm font-black text-[#FF6600]">Bs. {(item.price * item.quantity).toFixed(2)}</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						{/each}
+					</div>
+				{/if}
+			</div>
+
+			<div class="border-t border-gray-100 bg-white p-6 safe-area-bottom shadow-[0_-10px_40px_rgba(0,0,0,0.05)] z-10">
+				<div class="flex justify-between items-end mb-4">
+					<span class="text-sm text-gray-500 font-medium">Total Estimado:</span>
+					<span class="text-3xl font-black text-[#FF6600] tracking-tight">Bs. {cart.total.toFixed(2)}</span>
+				</div>
+				<button on:click={enviarPedido} disabled={cart.items.length === 0} class="w-full bg-[#25D366] hover:bg-[#1fa851] text-white py-4 rounded-xl font-bold text-sm uppercase shadow-lg shadow-green-100 flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-50 disabled:grayscale">
+					<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.792.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326z"/></svg>
+					ENVIAR PEDIDO POR WHATSAPP
+				</button>
+				<p class="text-[10px] text-center text-gray-400 mt-3 font-medium">Al enviar, un asesor confirmará stock.</p>
+			</div>
 		</Content>
 	</Root>
 </div>
-
-<style>
-	.cart-value.animate {
-		transform: translateX(10px);
-		animation: slideIn 0.3s forwards;
-	}
-
-	@keyframes slideIn {
-		0% {
-			transform: translateX(10px);
-		}
-		100% {
-			transform: translateX(0);
-		}
-	}
-
-	:global(button[data-dialog-close]:not(.custom-close-icon)) {
-		display: none !important;
-	}
-
-	:global([data-dialog-content]) {
-		border: unset;
-		background: #f2f2f2;
-		min-width: 494px !important;
-
-		@media (max-width: 460px) {
-			height: 90svh;
-			min-width: calc(85vw) !important;
-		}
-
-		@media (min-width: 460px) and (max-width: 640px) {
-			min-width: calc(80vw) !important;
-		}
-
-		@media (min-width: 640px) and (max-width: 768px) {
-			min-width: calc(70vw) !important;
-		}
-	}
-
-	:global(html.dark [data-dialog-content]) {
-		background: #1e1e1e;
-	}
-
-	:global([data-dialog-overlay]) {
-		--tw-backdrop-blur: blur(2px);
-		background: rgba(0, 0, 0, 0.24) !important;
-	}
-
-	:global(html.dark [data-dialog-overlay]) {
-		background: rgba(15, 15, 15, 0.24) !important;
-	}
-</style>

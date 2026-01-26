@@ -1,138 +1,66 @@
-import type { Product } from '../../utils/products';
-import { account } from './account.svelte';
+import { writable } from 'svelte/store';
 
-export type CartItem = {
-	slug: string;
-	features: Record<string, string>;
-	quantity: number;
-	product: Product;
-	price: number; // Product price + features price modifiers
-};
+class CartStore {
+	// 1. ESTADO (Solo en memoria RAM)
+	items = $state([]);
+	isOpen = $state(false);
 
-export type Cart = CartItem[];
+	// 2. DERIVADOS (Cálculos automáticos)
+	count = $derived(this.items.reduce((acc, item) => acc + item.quantity, 0));
+	total = $derived(this.items.reduce((acc, item) => acc + (item.price * item.quantity), 0));
 
-let items = $state([] as Cart);
-let isOpen = $state(false);
-let isLoaded = $state(false);
-let optimisticTotal = $state(0);
-
-// Calculamos el total de items sumando las cantidades
-const totalItems = $derived(items.reduce((total, item) => total + item.quantity, 0));
-
-// Debounce para no saturar la base de datos
-const debounce = <T extends unknown[]>(callback: (...args: T) => void, delay: number) => {
-	let timeoutTimer: ReturnType<typeof setTimeout>;
-	return (...args: T) => {
-		clearTimeout(timeoutTimer);
-		timeoutTimer = setTimeout(() => {
-			callback(...args);
-		}, delay);
-	};
-};
-
-const saveCartToPrefs = debounce(async (cartItems: Cart) => {
-	if (!isLoaded) return;
-	try {
-		await account.updatePrefs({ cart: cartItems });
-	} catch (error) {
-		console.error('Failed to save cart:', error);
+	constructor() {
+		// YA NO cargamos nada del localStorage. Empieza siempre vacío.
+		this.items = [];
 	}
-}, 1000);
 
-export const cart = {
-	// State getters
-	getItems: () => items,
-	getIsOpen: () => isOpen,
-	getTotalItems: () => (isLoaded ? totalItems : optimisticTotal),
-	getIsLoaded: () => isLoaded,
+	// 3. MÉTODOS
+	add(product: any, variant: any = {}, quantity: number = 1) {
+		const existingItem = this.items.find((item) => item.product.$id === product.$id);
 
-	// Sheet controls
-	setIsOpen: (value: boolean) => (isOpen = value),
-	openCart: () => (isOpen = true),
-	closeCart: () => (isOpen = false),
-	toggleCart: () => (isOpen = !isOpen),
-
-	// Cart operations
-	init: (total?: number) => {
-		if (total !== undefined) {
-			optimisticTotal = total;
-		}
-	},
-
-	loadPrefs(prefsItems: Cart) {
-		items = prefsItems;
-		isLoaded = true;
-	},
-
-	// --- MODIFICACIÓN CLAVE AQUÍ ---
-	// Añadimos el parámetro opcional 'quantity' (por defecto es 1)
-	add: (product: Product, features: Record<string, string>, quantity: number = 1) => {
-		const featuresId = Object.keys(features)
-			.map((v) => `${v}-${features[v]}`)
-			.join('-');
-		const cartItemSlug = `${product.slug}_${featuresId}`;
-
-		const index = items.findIndex((item) => cartItemSlug === item.slug);
-
-		if (index !== -1) {
-			// Si ya existe, sumamos la cantidad que nos piden (ej: +6 o +12)
-			items[index].quantity += quantity;
+		if (existingItem) {
+			existingItem.quantity += quantity;
 		} else {
-			// Si es nuevo
-			let price = product.price;
-			for (const featureName in features) {
-				const feature = product.features?.find((f) => f.name === featureName);
-				const variation = feature?.variations.find((v) => v.name === features[featureName]);
+			// Precio seguro
+			const price = parseFloat(product.preciopormayor || product.price || 0);
 
-				if (variation && feature && variation.priceModifier) {
-					price = variation.priceModifier(price, product, variation, feature);
-				}
+			this.items.push({
+				product,
+				variant,
+				quantity,
+				price,
+				slug: product.$id // Identificador único
+			});
+		}
+		// YA NO guardamos en localStorage
+	}
+
+	remove(productId: string) {
+		this.items = this.items.filter((item) => item.product.$id !== productId);
+	}
+
+	updateQuantity(productId: string, delta: number) {
+		const item = this.items.find((i) => i.product.$id === productId);
+		if (item) {
+			item.quantity += delta;
+			if (item.quantity <= 0) {
+				this.remove(productId);
 			}
-
-			items = [
-				...items,
-				{
-					slug: cartItemSlug,
-					quantity: quantity, // Usamos la cantidad solicitada
-					features,
-					product,
-					price
-				}
-			];
 		}
-		saveCartToPrefs(items);
-		// Opcional: Abrir el carrito automáticamente al agregar
-		// isOpen = true;
-	},
-
-	remove: (product: Product, features: Record<string, string>) => {
-		const featuresId = Object.keys(features)
-			.map((v) => `${v}-${features[v]}`)
-			.join('-');
-		const cartItemSlug = `${product.slug}_${featuresId}`;
-
-		items = items.filter((item) => item.slug !== cartItemSlug);
-		saveCartToPrefs(items);
-	},
-
-	updateQuantity: (product: Product, features: Record<string, string>, newQuantity: number) => {
-		const featuresId = Object.keys(features)
-			.map((v) => `${v}-${features[v]}`)
-			.join('-');
-		const cartItemSlug = `${product.slug}_${featuresId}`;
-
-		if (newQuantity <= 0) {
-			items = items.filter((item) => item.slug !== cartItemSlug);
-		} else {
-			items = items.map((item) =>
-				item.slug === cartItemSlug ? { ...item, quantity: newQuantity } : item
-			);
-		}
-		saveCartToPrefs(items);
-	},
-
-	clear: () => {
-		items = [];
-		saveCartToPrefs(items);
 	}
-};
+
+	clear() {
+		this.items = [];
+	}
+
+	setIsOpen(value: boolean) {
+		this.isOpen = value;
+	}
+
+	openCart() {
+		this.isOpen = true;
+	}
+}
+
+// Exportamos la instancia única
+export const cart = new CartStore();
