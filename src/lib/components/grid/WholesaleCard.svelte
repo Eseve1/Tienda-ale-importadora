@@ -52,12 +52,13 @@
 </script>
 
 <div
-	class="group relative bg-white rounded-2xl border border-gray-100 p-3 flex flex-col gap-1 hover:shadow-xl hover:border-[#f2421e]/30 transition-all duration-300 cursor-pointer overflow-hidden font-sans h-full"
+	class="group relative bg-white rounded-2xl border border-gray-100 p-3 flex flex-col gap-1 hover:shadow-xl hover:border-[#f2421e]/30 transition-all duration-300 cursor-pointer overflow-hidden font-sans h-full { !product.disponible ? 'opacity-60' : '' }"
 	on:click={() => dispatch('select', product)}
 	on:keydown={handleKeydown}
 	role="button"
 	tabindex="0"
 >
+
 	{#if !product.disponible}
 		<div class="absolute top-0 right-0 z-20 bg-red-500 text-white text-[9px] font-bold px-2 py-1 rounded-bl-xl shadow-sm">
 			Agotado
@@ -68,9 +69,9 @@
 		<img
 			src={product.imagen}
 			alt={product.descripcion}
-			loading="lazy"
-			class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 ease-out"
+			class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 { !product.disponible ? 'grayscale' : '' }"
 		/>
+
 	</div>
 
 	<div class="flex flex-col flex-1 gap-0.5">

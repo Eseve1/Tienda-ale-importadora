@@ -41,57 +41,62 @@
 	async function cargarProductos(cat = "Todo", isSearch = false, loadMore = false) {
 		if (loadMore) {
 			loadingMore = true;
-			offset += LIMIT;
 		} else {
 			loading = true;
 			offset = 0;
 			hasMore = true;
+			productos = [];
 			catActual = cat;
-			if (!loadMore) productos = [];
 		}
 
 		try {
-			let queries = [
-				Query.equal("disponible", true),
+			const queries: any[] = [
 				Query.limit(LIMIT),
 				Query.offset(offset),
 				Query.orderDesc('$createdAt')
 			];
 
+			// 🔎 BÚSQUEDA SERVER-SIDE (NO FILTER LOCAL)
+			if (searchTerm && searchTerm.trim().length > 0) {
+				queries.push(
+					Query.or([
+						Query.contains("codigo", searchTerm),
+						Query.contains("descripcion", searchTerm)
+					])
+				);
+			}
+
+			// 📂 CATEGORÍA (solo cuando no es búsqueda)
 			if (cat !== "Todo" && !isSearch) {
 				queries.push(Query.equal("categoria", cat));
 			}
 
-			const res = await db.listDocuments(DB_ID, COLLECTION_ID, queries);
+			const res = await db.listDocuments(
+				DB_ID,
+				COLLECTION_ID,
+				queries
+			);
 
-			let nuevosProductos = res.documents;
+			const nuevos = res.documents ?? [];
 
-			if (searchTerm) {
-				const term = searchTerm.toLowerCase();
-				nuevosProductos = res.documents.filter(p => {
-					const desc = (p.descripcion || "").toLowerCase();
-					const cod = (p.codigo || "").toLowerCase();
-					return desc.includes(term) || cod.includes(term);
-				});
-			}
+			productos = loadMore
+				? [...productos, ...nuevos]
+				: nuevos;
 
-			if (loadMore) {
-				productos = [...productos, ...nuevosProductos];
-			} else {
-				productos = nuevosProductos;
-			}
+			offset += nuevos.length;
 
-			if (res.documents.length < LIMIT) {
+			if (nuevos.length < LIMIT) {
 				hasMore = false;
 			}
 
 		} catch (e) {
-			console.error("Error cargando:", e);
+			console.error("Error cargando productos", e);
 		} finally {
 			loading = false;
 			loadingMore = false;
 		}
 	}
+
 
 	function handleSearchInput() {
 		clearTimeout(debounceTimer);
@@ -243,8 +248,17 @@
 			>
 				<button class="absolute top-4 right-4 bg-gray-100 text-gray-400 p-2 rounded-full z-50 hover:bg-[#f7421e] hover:text-white" on:click={cerrarModal} aria-label="Cerrar">✕</button>
 
-				<div class="w-full md:w-1/2 bg-[#f9f9f9] h-48 md:h-auto flex items-center justify-center border-b md:border-b-0 md:border-r border-gray-100 shrink-0">
-					<img src={selectedProduct.imagen} alt="" class="h-full w-full object-contain p-4 mix-blend-multiply" />
+				<div class="w-full md:w-1/2 bg-[#f9f9f9] h-48 md:h-auto flex items-center justify-center border-b md:border-b-0 md:border-r border-gray-100 shrink-0 relative">
+					{#if !selectedProduct.disponible}
+						<div class="absolute top-4 left-4 z-10 bg-red-600 text-white text-[10px] font-black uppercase px-3 py-1 rounded-full shadow-lg">
+							Agotado
+						</div>
+					{/if}
+					<img
+						src={selectedProduct.imagen}
+						alt=""
+						class="h-full w-full object-contain p-4 mix-blend-multiply { !selectedProduct.disponible ? 'grayscale opacity-50' : '' }"
+					/>
 				</div>
 
 				<div class="w-full md:w-1/2 p-6 md:p-12 flex flex-col overflow-y-auto">
@@ -256,9 +270,21 @@
 						<div class="text-gray-400 text-[10px] font-bold mt-2 uppercase tracking-widest">Pedido Mínimo: {selectedProduct.moq || 1} unidades</div>
 					</div>
 
-					<button on:click={añadirYSalir} class="w-full bg-[#00C853] hover:bg-[#00a844] text-white py-4 md:py-5 rounded-2xl font-black uppercase text-xs tracking-[0.1em] shadow-xl shadow-green-100 active:scale-95 transition-all mt-auto">
-						Confirmar y Añadir
-					</button>
+					{#if selectedProduct.disponible}
+						<button
+							on:click={añadirYSalir}
+							class="w-full bg-[#00C853] hover:bg-[#00a844] text-white py-4 md:py-5 rounded-2xl font-black uppercase text-xs tracking-[0.1em] shadow-xl shadow-green-100 active:scale-95 transition-all mt-auto"
+						>
+							Confirmar y Añadir
+						</button>
+					{:else}
+						<button
+							disabled
+							class="w-full bg-gray-200 text-gray-400 py-4 md:py-5 rounded-2xl font-black uppercase text-xs tracking-[0.1em] mt-auto cursor-not-allowed"
+						>
+							Producto Agotado
+						</button>
+					{/if}
 				</div>
 			</div>
 		</div>
