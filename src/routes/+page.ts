@@ -1,38 +1,34 @@
 import type { PageLoad } from './$types';
 
 export const load: PageLoad = async ({ url, parent }) => {
-	// PROTECCIÓN: Si parent() no trae nada, usamos un array vacío []
 	const parentData = await parent();
 	const allProducts = parentData.allProducts || [];
 
 	const category = url.searchParams.get('category') || 'All Products';
 	const filter = url.searchParams.get('filter') || 'newest';
 
-	// Si no hay productos, devolvemos lista vacía y no explota
 	if (!allProducts || allProducts.length === 0) {
 		return { products: [], category, filter };
 	}
 
-	// 1. FILTRADO
+	// 1. FILTRADO (Corregido a 'categoria')
 	const filteredProducts = category === 'All Products'
 		? allProducts
-		: allProducts.filter((p) =>
-			p.categories.some(c => c.toLowerCase() === category.toLowerCase())
-		);
+		// @ts-ignore
+		: allProducts.filter((p) => p.categoria && p.categoria.toLowerCase() === category.toLowerCase());
 
-	// 2. ORDENAMIENTO
-	const sortedProducts = [...filteredProducts].sort((a, b) => {
+	// 2. ORDENAMIENTO (Corregido a 'preciopormayor')
+	const sortedProducts = [...filteredProducts].sort((a: any, b: any) => {
+		const priceA = parseFloat(a.preciopormayor || 0);
+		const priceB = parseFloat(b.preciopormayor || 0);
+
 		switch (filter) {
-			case 'lth': return a.price - b.price;
-			case 'htl': return b.price - a.price;
-			case 'newest': return new Date(b.date).getTime() - new Date(a.date).getTime();
+			case 'lth': return priceA - priceB;
+			case 'htl': return priceB - priceA;
+			case 'newest': return new Date(b.$createdAt).getTime() - new Date(a.$createdAt).getTime();
 			default: return 0;
 		}
 	});
 
-	return {
-		products: sortedProducts,
-		category,
-		filter
-	};
+	return { products: sortedProducts, category, filter };
 };

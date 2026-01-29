@@ -1,19 +1,91 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-    font-family: 'Inter', sans-serif;
-    color: #222;
-    background-color: #f7f7f7;
+/* Theme variables */
+:root{
+    --accent: #FF6A00;        /* naranja tipo "Alibaba" */
+    --accent-dark: #7a2b00;
+    --muted: #6b7280;
+    --bg: #fafafa;
+    --card-border: rgba(0,0,0,0.06);
+    --brand-font: 'Poppins', system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
 }
 
-/* Primera letra mayúscula, el resto normal */
-.sentence-case::first-letter {
-    text-transform: uppercase;
+/* Base */
+html,body{
+    height:100%;
+    margin:0;
+    background:var(--bg);
+    color:#0f172a;
+    font-family: var(--brand-font);
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
 }
 
-.no-scrollbar::-webkit-scrollbar { display: none; }
-.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+/* Helpers */
+.no-scrollbar::-webkit-scrollbar{ display:none; }
+.no-scrollbar{ -ms-overflow-style:none; scrollbar-width:none; }
+.modal-open{ overflow:hidden !important; }
+
+/* Alibaba-style banner */
+.alibaba-banner{
+    background: linear-gradient(90deg, var(--accent) 0%, var(--accent-dark) 100%);
+    border-radius: 12px;
+    color: #fff;
+    padding: 28px 20px;
+    margin: 20px 0;
+    box-shadow: 0 12px 40px rgba(122,43,0,0.12);
+}
+.alibaba-banner .pill{
+    background: rgba(255,255,255,0.12);
+    padding:6px 12px;
+    border-radius:999px;
+    font-weight:700;
+    font-size:12px;
+    text-transform:uppercase;
+    display:inline-block;
+}
+.alibaba-banner h1{ margin:8px 0 0; font-size: clamp(20px, 3.6vw, 40px); font-weight:800; text-transform:uppercase; letter-spacing:-0.6px; }
+.alibaba-banner p{ margin:6px 0 0; opacity:0.95; font-size:14px; }
+
+/* Grid responsive */
+.grid { display:grid; gap:1rem; grid-template-columns: repeat(2,1fr); }
+@media (min-width:640px){ .grid { grid-template-columns: repeat(3,1fr); } }
+@media (min-width:1024px){ .grid { grid-template-columns: repeat(4,1fr); } }
+@media (min-width:1400px){ .grid { grid-template-columns: repeat(5,1fr); } }
+
+/* Back-to-top button */
+.back-to-top{
+    position:fixed; right:1rem; bottom:5.6rem; z-index:70;
+    height:48px; width:48px; border-radius:999px;
+    display:flex; align-items:center; justify-content:center;
+    background:#0f172a; color:#fff; border:none; cursor:pointer;
+    box-shadow:0 10px 30px rgba(2,6,23,0.12); transition: transform .12s, background .12s;
+}
+.back-to-top:hover{ transform: translateY(-3px); background:var(--accent); }
+
+/* Footer credits */
+.footer-credits { font-size:12px; color:var(--muted); display:flex; gap:8px; align-items:center; justify-content:center; margin-top:8px; }
+.footer-credits strong{ color:#0f172a; margin-left:6px; }
+
+/* Modal basics */
+.modal-back { position:fixed; inset:0; background: rgba(0,0,0,0.6); z-index:80; display:flex; align-items:center; justify-content:center; padding:20px; }
+.modal-panel { width:100%; max-width:960px; background:white; border-radius:12px; overflow:hidden; box-shadow:0 20px 60px rgba(2,6,23,0.18); }
+@media (max-width:640px){ .modal-panel { max-width: 96vw; } }
+
+/* Image helpers */
+.product-card img, .wh-card-media img, img { display:block; max-width:100%; height:auto; }
+
+/* Cart responsive safety (CartSheet also applies) */
+@media (max-width:640px) {
+    .grid { gap:0.6rem; }
+    .back-to-top{ right:0.75rem; bottom:6.5rem; height:44px; width:44px; }
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce){
+    * { animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; scroll-behavior:auto !important; }
+}

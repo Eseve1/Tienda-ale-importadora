@@ -1,26 +1,23 @@
 <script>
-	// El texto que pediste
-	const texto = "🚚 ENVÍOS A TODO BOLIVIA SEGUROS • ⚡ DESCUENTO DEL 20% APLICADO EN PRECIOS POR MAYOR • 📦 PEDIDO MÍNIMO BS. 300 • 🔥 OFERTAS RELÁMPAGO ACTIVAS • ";
+	const texto = "⚡ Despacho Inmediato • 🇧🇴 Envíos a todo Bolivia • ★ Precios de Fábrica • 📦 Venta por Cajas • 🔥 Ofertas Semanales • ";
 </script>
 
-<div class="bg-[#111827] text-white overflow-hidden py-1.5 relative z-50 border-b border-gray-800">
+<div class="bg-[#f7421e] text-white overflow-hidden py-3.5 relative z-50 border-b border-orange-600 shadow-sm">
 	<div class="marquee-container flex whitespace-nowrap">
-		<div class="animate-marquee inline-block text-[10px] sm:text-xs font-bold tracking-wider uppercase">
+		<div class="animate-marquee inline-block text-xs sm:text-sm font-black tracking-widest uppercase">
 			{texto} {texto} {texto} {texto}
 		</div>
-		<div class="animate-marquee inline-block text-[10px] sm:text-xs font-bold tracking-wider uppercase" aria-hidden="true">
+		<div class="animate-marquee inline-block text-xs sm:text-sm font-black tracking-widest uppercase" aria-hidden="true">
 			{texto} {texto} {texto} {texto}
 		</div>
 	</div>
 </div>
 
 <style>
-    /* Animación suave y continua */
     .animate-marquee {
-        animation: marquee 30s linear infinite;
-        padding-right: 1rem; /* Espacio entre bloques */
+        animation: marquee 60s linear infinite;
+        padding-right: 2rem;
     }
-
     @keyframes marquee {
         0% { transform: translateX(0); }
         100% { transform: translateX(-100%); }
