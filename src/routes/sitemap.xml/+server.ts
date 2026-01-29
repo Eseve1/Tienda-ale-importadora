@@ -1,77 +1,80 @@
 import { Client, Databases, Query } from 'appwrite';
 
-const PROJECT_ID = "692ee6b70012153cd33c";
-const DATABASE_ID = "692ee774002e9a3c8601";
-const COLLECTION_ID = "catalogo";
+// --- CREDENCIALES ---
+const ENDPOINT = "https://api.importadoraale.app/v1";
+const PROJECT_ID = "6978d1bc000bad7c5671";
+const DATABASE_ID = "6978d1f3000ea0b56ebc";
+const COLLECTION_ID = "catalogo_ale";
 
 const categoriasSitemap = [
 	"Belleza y salud", "Herramientas", "Hogar y cocina",
 	"Infantil", "Moda y equipaje", "Oficina y escolar", "Tecnología"
 ];
 
-const client = new Client()
-	.setEndpoint("https://cloud.appwrite.io/v1")
-	.setProject(PROJECT_ID);
+const client = new Client().setEndpoint(ENDPOINT).setProject(PROJECT_ID);
 const databases = new Databases(client);
 
+// ESCUDO DE CACHÉ
 let sitemapCache: string | null = null;
-let lastCache = 0;
+let lastCacheTime = 0;
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 Horas
 
 export async function GET({ url }) {
-	// MEJORA 1: Subimos el caché interno a 60 minutos
-	if (sitemapCache && Date.now() - lastCache < 60 * 60 * 1000) {
+	if (sitemapCache && (Date.now() - lastCacheTime < CACHE_DURATION)) {
 		return new Response(sitemapCache, {
-			headers: { 'Content-Type': 'application/xml' }
+			headers: { 'Content-Type': 'application/xml', 'Cache-Control': 'public, max-age=86400' }
 		});
 	}
 
 	let products: any[] = [];
 	try {
 		const response = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [
-			Query.limit(1000),
-			// MEJORA 2: ¡ESTO ES ORO! Solo traemos el ID.
-			// Reduce el peso de la respuesta de la BD en un 99%.
-			Query.select(['$id'])
+			Query.equal("disponible", true),
+			Query.limit(5000),
+			Query.select(['$id', '$updatedAt'])
 		]);
 		products = response.documents;
 	} catch (err) {
-		console.error('Sitemap fetch error:', err);
+		console.error('Error Sitemap:', err);
 	}
 
 	const pages = [
-		'', // home
-		...categoriasSitemap.map(c => `category/${encodeURIComponent(c)}`),
-		...products.map(p => `product-${p.$id}`)
+		'',
+		...categoriasSitemap.map(c => `?category=${encodeURIComponent(c)}`),
+		...products.map(p => `?id=${p.$id}`)
 	];
 
-	const body = generateXML(url.origin, pages);
+	const body = generateXML(url.origin, pages, products);
 	sitemapCache = body;
-	lastCache = Date.now();
+	lastCacheTime = Date.now();
 
 	return new Response(body, {
 		headers: {
 			'Content-Type': 'application/xml',
-			// Cache público de 24 horas
-			'Cache-Control': 'public, max-age=0, s-maxage=86400'
+			'Cache-Control': 'public, max-age=86400'
 		}
 	});
 }
 
-function generateXML(origin: string, pages: string[]) {
+function generateXML(origin: string, pages: string[], products: any[]) {
+	const cleanOrigin = origin.endsWith('/') ? origin.slice(0, -1) : origin;
 	const urls = pages.map(p => {
-		// Evita dobles slashes si origin ya trae uno
-		const cleanOrigin = origin.endsWith('/') ? origin.slice(0, -1) : origin;
 		const loc = p ? `${cleanOrigin}/${p}` : `${cleanOrigin}/`;
-
+		let lastmod = '';
+		if (p.startsWith('?id=')) {
+			const prodId = p.split('=')[1];
+			const prod = products.find(item => item.$id === prodId);
+			if (prod) lastmod = `\n    <lastmod>${new Date(prod.$updatedAt).toISOString()}</lastmod>`;
+		}
 		return `  <url>
-    <loc>${loc}</loc>
-    <changefreq>daily</changefreq>
-    <priority>${p === '' ? '1.0' : '0.5'}</priority>
+    <loc>${loc}</loc>${lastmod}
+    <changefreq>${p === '' ? 'daily' : 'weekly'}</changefreq>
+    <priority>${p === '' ? '1.0' : '0.6'}</priority>
   </url>`;
 	}).join('\n');
 
 	return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${urls}
-</urlset>`;
+</urlset>`.trim();
 }

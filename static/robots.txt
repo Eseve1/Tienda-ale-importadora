@@ -1,2 +1,7 @@
 User-agent: *
-Disallow: /api
+Allow: /
+Disallow: /admin
+Disallow: /api/
+
+# La ruta oficial de tu mapa
+Sitemap: https://importadoraale.app/sitemap.xml
