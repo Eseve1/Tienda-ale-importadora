@@ -67,7 +67,6 @@
 			const res = await db.listDocuments(DB_ID, COLLECTION_ID, queries);
 			let nuevos = res.documents ?? [];
 
-			// Sorting: Disponibles primero, Agotados al final
 			nuevos = nuevos.sort((a, b) => {
 				if (a.disponible === true && b.disponible !== true) return -1;
 				if (a.disponible !== true && b.disponible === true) return 1;
@@ -113,7 +112,21 @@
 		if (e.key === 'Escape') cerrarModal();
 	}
 
-	onMount(() => cargarProductos());
+	onMount(async () => {
+		await cargarProductos();
+
+		const params = new URLSearchParams(window.location.search);
+		const idShared = params.get('id');
+
+		if (idShared) {
+			const productoEncontrado = productos.find(p => p.$id === idShared);
+			if (productoEncontrado) {
+				selectedProduct = productoEncontrado;
+				modalOpen = true;
+				if (typeof document !== 'undefined') document.body.style.overflow = 'hidden';
+			}
+		}
+	});
 </script>
 
 <svelte:head>
