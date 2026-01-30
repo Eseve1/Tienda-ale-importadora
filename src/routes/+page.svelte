@@ -137,11 +137,15 @@
 </script>
 
 <svelte:head>
-	<title>Ale Importadora | Catálogo Mayorista</title>
-	<meta name="description" content="Importación directa de productos por mayor en Santa Cruz. Precios de fábrica." />
-	<link rel="canonical" href="https://importadoraale.app" />
-</svelte:head>
+	<title>Ale Importadora | Catálogo Mayorista y Novedades en Santa Cruz</title>
 
+	<meta name="description" content="Descubre el catálogo virtual de importación directa en Bolivia. Precios de fábrica en Hogar, Tecnología, Belleza y Juguetes. Abastece tu negocio hoy mismo." />
+
+	<meta property="og:type" content="website" />
+	<meta property="og:title" content="Ale Importadora | Catálogo Mayorista en Bolivia" />
+	<meta property="og:description" content="Precios de locura para revendedores. Mira el catálogo actualizado aquí." />
+	<meta property="og:image" content="https://importadoraale.app/logo-social.png" /> <link rel="canonical" href="https://importadoraale.app" />
+</svelte:head>
 <svelte:window bind:scrollY={y} />
 
 <div class="min-h-screen bg-[#fcfcfc] flex flex-col font-sans selection:bg-[#f7421e] selection:text-white">
