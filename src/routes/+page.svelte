@@ -22,6 +22,7 @@
 	let loadingMore = false;
 	let modalOpen = false;
 	let selectedProduct: any = null;
+	let activeImage = "";
 	let y = 0;
 	let searchTerm = "";
 	let catActual = "Todo";
@@ -95,9 +96,17 @@
 		}, 400);
 	}
 
+	function abrirModal(producto: any) {
+		selectedProduct = producto;
+		activeImage = producto.imagen;
+		modalOpen = true;
+		if (typeof document !== 'undefined') document.body.style.overflow = 'hidden';
+	}
+
 	function cerrarModal() {
 		modalOpen = false;
 		selectedProduct = null;
+		activeImage = "";
 		if (typeof document !== 'undefined') document.body.style.overflow = '';
 	}
 
@@ -121,9 +130,7 @@
 		if (idShared) {
 			const productoEncontrado = productos.find(p => p.$id === idShared);
 			if (productoEncontrado) {
-				selectedProduct = productoEncontrado;
-				modalOpen = true;
-				if (typeof document !== 'undefined') document.body.style.overflow = 'hidden';
+				abrirModal(productoEncontrado);
 			}
 		}
 	});
@@ -144,6 +151,9 @@
 		<div class="max-w-7xl mx-auto relative">
 			<input
 				type="text"
+				name="search"
+				id="search"
+				autocomplete="off"
 				aria-label="Buscar productos por nombre o código"
 				bind:value={searchTerm}
 				on:input={handleSearchInput}
@@ -195,7 +205,7 @@
 					<WholesaleCard
 						{product}
 						index={i}
-						on:select={(e) => { selectedProduct = e.detail; modalOpen = true; if (typeof document !== 'undefined') document.body.style.overflow = 'hidden'; }}
+						on:select={(e) => abrirModal(e.detail)}
 					/>
 				{/each}
 			</div>
@@ -256,17 +266,37 @@
 			>
 				<button class="absolute top-4 right-4 bg-gray-100 text-gray-400 p-2 rounded-full z-50 hover:bg-[#f7421e] hover:text-white" on:click={cerrarModal} aria-label="Cerrar">✕</button>
 
-				<div class="w-full md:w-1/2 bg-[#f9f9f9] h-48 md:h-auto flex items-center justify-center border-b md:border-b-0 md:border-r border-gray-100 shrink-0 relative">
+				<div class="w-full md:w-1/2 bg-[#f9f9f9] h-auto flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-gray-100 shrink-0 relative p-4">
 					{#if !selectedProduct.disponible}
 						<div class="absolute top-4 left-4 z-10 bg-red-600 text-white text-[10px] font-black uppercase px-3 py-1 rounded-full shadow-lg">
 							Agotado
 						</div>
 					{/if}
-					<img
-						src="{selectedProduct.imagen}&width=600&quality=80&output=webp"
-						alt={selectedProduct.descripcion}
-						class="h-full w-full object-contain p-4 mix-blend-multiply { !selectedProduct.disponible ? 'grayscale opacity-50' : '' }"
-					/>
+
+					<div class="w-full h-64 md:h-96 flex items-center justify-center mb-4">
+						<img
+							src="{activeImage || selectedProduct.imagen}&width=600&quality=80&output=webp"
+							alt={selectedProduct.descripcion}
+							class="h-full w-full object-contain mix-blend-multiply { !selectedProduct.disponible ? 'grayscale opacity-50' : '' }"
+						/>
+					</div>
+
+					{#if selectedProduct.imagen2}
+						<div class="flex gap-2">
+							<button
+								on:click={() => activeImage = selectedProduct.imagen}
+								class="w-16 h-16 border-2 rounded-lg overflow-hidden transition-all {activeImage === selectedProduct.imagen ? 'border-[#f7421e]' : 'border-transparent hover:border-gray-300'}"
+							>
+								<img src="{selectedProduct.imagen}&width=100&quality=60&output=webp" class="w-full h-full object-cover" alt="Vista 1" />
+							</button>
+							<button
+								on:click={() => activeImage = selectedProduct.imagen2}
+								class="w-16 h-16 border-2 rounded-lg overflow-hidden transition-all {activeImage === selectedProduct.imagen2 ? 'border-[#f7421e]' : 'border-transparent hover:border-gray-300'}"
+							>
+								<img src="{selectedProduct.imagen2}&width=100&quality=60&output=webp" class="w-full h-full object-cover" alt="Vista 2" />
+							</button>
+						</div>
+					{/if}
 				</div>
 
 				<div class="w-full md:w-1/2 p-6 md:p-12 flex flex-col overflow-y-auto">

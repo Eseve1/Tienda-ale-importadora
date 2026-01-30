@@ -3,7 +3,7 @@
 	import { fly } from 'svelte/transition';
 
 	export let product: any;
-	export let index: number = 0; // Índice vital para el Lazy Loading inteligente
+	export let index: number = 0;
 
 	const dispatch = createEventDispatcher();
 
@@ -20,7 +20,6 @@
 	let interval: any;
 
 	onMount(() => {
-		// Retrasamos el inicio de la animación para no afectar la carga inicial (LCP)
 		const delay = 2000 + Math.random() * 2000;
 		setTimeout(() => {
 			interval = setInterval(() => {
@@ -62,8 +61,19 @@
 			fetchpriority={index < 4 ? "high" : "auto"}
 			width="400"
 			height="400"
-			class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 { !product.disponible ? 'grayscale' : '' }"
+			class="absolute inset-0 w-full h-full object-cover transition-opacity duration-300 {product.imagen2 ? 'group-hover:opacity-0' : 'group-hover:scale-105'} { !product.disponible ? 'grayscale' : '' }"
 		/>
+
+		{#if product.imagen2}
+			<img
+				src="{product.imagen2}&width=400&height=400&quality=75&output=webp"
+				alt="{product.descripcion} vista 2"
+				loading="lazy"
+				width="400"
+				height="400"
+				class="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-300 { !product.disponible ? 'grayscale' : '' }"
+			/>
+		{/if}
 	</div>
 
 	<div class="flex flex-col flex-1 gap-0.5">
