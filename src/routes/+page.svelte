@@ -2,15 +2,12 @@
 	import { onMount } from 'svelte';
 	import { Client, Databases, Query } from 'appwrite';
 	import { fade, fly } from 'svelte/transition';
-
-	// Componentes
 	import WholesaleCard from '$lib/components/grid/WholesaleCard.svelte';
 	import CartSheet from '$lib/components/cart/CartSheet.svelte';
 	import AnnouncementBar from '$lib/components/header/AnnouncementBar.svelte';
 	import Footer from '$lib/components/footer/Footer.svelte';
 	import { cart } from '$lib/stores/cart';
 
-	// --- CONFIGURACIÓN APPWRITE ---
 	const ENDPOINT = "https://api.importadoraale.app/v1";
 	const PROJECT_ID = "6978d1bc000bad7c5671";
 	const DB_ID = "6978d1f3000ea0b56ebc";
@@ -19,7 +16,6 @@
 	const client = new Client().setEndpoint(ENDPOINT).setProject(PROJECT_ID);
 	const db = new Databases(client);
 
-	// --- ESTADOS ---
 	let productos: any[] = [];
 	let loading = true;
 	let loadingMore = false;
@@ -29,7 +25,6 @@
 	let searchTerm = "";
 	let catActual = "Todo";
 
-	// --- PAGINACIÓN ---
 	const LIMIT = 50;
 	let offset = 0;
 	let hasMore = true;
@@ -37,7 +32,6 @@
 
 	const categorias = ["Todo", "Belleza y salud", "Herramientas", "Hogar y cocina", "Infantil", "Moda y equipaje", "Oficina y escolar", "Tecnología"];
 
-	// --- LÓGICA DE CARGA ---
 	async function cargarProductos(cat = "Todo", isSearch = false, loadMore = false) {
 		if (loadMore) {
 			loadingMore = true;
@@ -56,7 +50,6 @@
 				Query.orderDesc('$createdAt')
 			];
 
-			// 🔎 BÚSQUEDA SERVER-SIDE (NO FILTER LOCAL)
 			if (searchTerm && searchTerm.trim().length > 0) {
 				queries.push(
 					Query.or([
@@ -66,37 +59,32 @@
 				);
 			}
 
-			// 📂 CATEGORÍA (solo cuando no es búsqueda)
 			if (cat !== "Todo" && !isSearch) {
 				queries.push(Query.equal("categoria", cat));
 			}
 
-			const res = await db.listDocuments(
-				DB_ID,
-				COLLECTION_ID,
-				queries
-			);
+			const res = await db.listDocuments(DB_ID, COLLECTION_ID, queries);
+			let nuevos = res.documents ?? [];
 
-			const nuevos = res.documents ?? [];
+			nuevos = nuevos.sort((a, b) => {
+				if (a.disponible === true && b.disponible !== true) return -1;
+				if (a.disponible !== true && b.disponible === true) return 1;
+				return 0;
+			});
 
-			productos = loadMore
-				? [...productos, ...nuevos]
-				: nuevos;
-
+			productos = loadMore ? [...productos, ...nuevos] : nuevos;
 			offset += nuevos.length;
 
 			if (nuevos.length < LIMIT) {
 				hasMore = false;
 			}
-
 		} catch (e) {
-			console.error("Error cargando productos", e);
+			console.error(e);
 		} finally {
 			loading = false;
 			loadingMore = false;
 		}
 	}
-
 
 	function handleSearchInput() {
 		clearTimeout(debounceTimer);
@@ -119,7 +107,6 @@
 		}
 	}
 
-	// --- ACCESIBILIDAD MODAL ---
 	function handleModalKeydown(e: KeyboardEvent) {
 		if (e.key === 'Escape') cerrarModal();
 	}
@@ -128,8 +115,23 @@
 </script>
 
 <svelte:head>
-	<title>Ale Importadora | Catálogo Mayorista</title>
-	<meta name="description" content="Importación directa de productos por mayor en Santa Cruz. Precios de fábrica." />
+	<title>Ale Importadora | Catálogo Mayorista de Productos en Santa Cruz</title>
+	<link rel="canonical" href="https://importadoraale.app" />
+	<meta name="description" content="Importación directa de productos por mayor en Santa Cruz. Precios de fábrica y envíos a toda Bolivia. Catálogo actualizado." />
+	<script type="application/ld+json">
+		{
+			"@context": "https://schema.org/",
+			"@type": "WholesaleStore",
+			"name": "Ale Importadora",
+			"image": "https://importadoraale.app/logo.png",
+			"description": "Importación directa por mayor en Santa Cruz, Bolivia.",
+			"address": {
+			"@type": "PostalAddress",
+				"addressLocality": "Santa Cruz de la Sierra",
+				"addressCountry": "BO"
+		}
+		}
+	</script>
 </svelte:head>
 
 <svelte:window bind:scrollY={y} />
@@ -159,12 +161,8 @@
 		<div class="bg-[#f7421e] rounded-[2rem] p-8 md:p-12 text-white relative overflow-hidden shadow-xl shadow-orange-200 border-2 border-white/10">
 			<div class="relative z-10 flex flex-col items-start max-w-2xl">
 				<span class="bg-black/20 text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest mb-3 border border-white/20">Mayorista Oficial</span>
-				<h1 class="text-3xl md:text-5xl font-black italic uppercase tracking-tighter leading-none mb-3">
-					Importación Directa
-				</h1>
-				<p class="text-xs md:text-sm font-bold opacity-90 leading-relaxed max-w-md">
-					Precios especiales para tiendas y revendedores. Stock real en Santa Cruz.
-				</p>
+				<h1 class="text-3xl md:text-5xl font-black italic uppercase tracking-tighter leading-none mb-3">Importación Directa</h1>
+				<p class="text-xs md:text-sm font-bold opacity-90 leading-relaxed max-w-md">Precios especiales para tiendas y revendedores. Stock real en Santa Cruz.</p>
 			</div>
 		</div>
 	</div>
@@ -188,7 +186,7 @@
 		{:else}
 			<div class="grid grid-cols-2 md:grid-cols-5 gap-3 lg:gap-5">
 				{#each productos as product (product.$id)}
-					<WholesaleCard {product} on:select={(e) => { selectedProduct = e.detail; modalOpen = true; document.body.style.overflow = 'hidden'; }} />
+					<WholesaleCard {product} on:select={(e) => { selectedProduct = e.detail; modalOpen = true; if (typeof document !== 'undefined') document.body.style.overflow = 'hidden'; }} />
 				{/each}
 			</div>
 
@@ -218,7 +216,7 @@
 
 	{#if y > 500}
 		<button
-			aria-label="Subir"
+			aria-label="Volver arriba"
 			on:click={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
 			class="fixed bottom-24 right-4 h-12 w-12 md:h-14 md:w-14 bg-[#0085FF] text-white rounded-full shadow-2xl z-[350] border-2 border-white flex items-center justify-center animate-bounce hover:scale-110 transition-transform ring-2 ring-blue-100/50"
 		>
@@ -246,17 +244,15 @@
 				on:click|stopPropagation
 				on:keydown|stopPropagation
 			>
-				<button class="absolute top-4 right-4 bg-gray-100 text-gray-400 p-2 rounded-full z-50 hover:bg-[#f7421e] hover:text-white" on:click={cerrarModal} aria-label="Cerrar">✕</button>
+				<button class="absolute top-4 right-4 bg-gray-100 text-gray-400 p-2 rounded-full z-50 hover:bg-[#f7421e] hover:text-white" on:click={cerrarModal} aria-label="Cerrar modal">✕</button>
 
 				<div class="w-full md:w-1/2 bg-[#f9f9f9] h-48 md:h-auto flex items-center justify-center border-b md:border-b-0 md:border-r border-gray-100 shrink-0 relative">
 					{#if !selectedProduct.disponible}
-						<div class="absolute top-4 left-4 z-10 bg-red-600 text-white text-[10px] font-black uppercase px-3 py-1 rounded-full shadow-lg">
-							Agotado
-						</div>
+						<div class="absolute top-4 left-4 z-10 bg-red-600 text-white text-[10px] font-black uppercase px-3 py-1 rounded-full shadow-lg">Agotado</div>
 					{/if}
 					<img
-						src={selectedProduct.imagen}
-						alt=""
+						src="{selectedProduct.imagen}&width=600&quality=80&output=webp"
+						alt={selectedProduct.descripcion}
 						class="h-full w-full object-contain p-4 mix-blend-multiply { !selectedProduct.disponible ? 'grayscale opacity-50' : '' }"
 					/>
 				</div>
@@ -264,32 +260,22 @@
 				<div class="w-full md:w-1/2 p-6 md:p-12 flex flex-col overflow-y-auto">
 					<span class="text-[#f7421e] font-black text-[10px] uppercase tracking-wider mb-2 block">Ref: {selectedProduct.codigo}</span>
 					<h2 class="text-xl md:text-3xl font-black text-gray-900 leading-tight mb-4">{selectedProduct.descripcion}</h2>
-
 					<div class="bg-gray-50 p-5 rounded-2xl mb-6 border border-gray-100">
 						<div class="text-[#f7421e] text-4xl md:text-5xl font-black italic tracking-tighter">Bs. {Number(selectedProduct.preciopormayor).toFixed(2)}</div>
 						<div class="text-gray-400 text-[10px] font-bold mt-2 uppercase tracking-widest">Pedido Mínimo: {selectedProduct.moq || 1} unidades</div>
 					</div>
-
 					{#if selectedProduct.disponible}
 						<button
 							on:click={añadirYSalir}
 							class="w-full bg-[#00C853] hover:bg-[#00a844] text-white py-4 md:py-5 rounded-2xl font-black uppercase text-xs tracking-[0.1em] shadow-xl shadow-green-100 active:scale-95 transition-all mt-auto"
-						>
-							Confirmar y Añadir
-						</button>
+						>Confirmar y Añadir</button>
 					{:else}
-						<button
-							disabled
-							class="w-full bg-gray-200 text-gray-400 py-4 md:py-5 rounded-2xl font-black uppercase text-xs tracking-[0.1em] mt-auto cursor-not-allowed"
-						>
-							Producto Agotado
-						</button>
+						<button disabled class="w-full bg-gray-200 text-gray-400 py-4 md:py-5 rounded-2xl font-black uppercase text-xs tracking-[0.1em] mt-auto cursor-not-allowed">Producto Agotado</button>
 					{/if}
 				</div>
 			</div>
 		</div>
 	{/if}
-
 	<CartSheet />
 </div>
 
