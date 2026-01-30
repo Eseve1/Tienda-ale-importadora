@@ -2,6 +2,7 @@
 	// @ts-nocheck
 	import { onMount } from 'svelte';
 	import { Client, Databases, Storage, ID, Query } from 'appwrite';
+
 	const ADMIN_PASS = "eddy4242";
 
 	// --- CREDENCIALES ---
@@ -9,7 +10,9 @@
 	const PROJECT_ID = "6978d1bc000bad7c5671";
 	const DATABASE_ID = "6978d1f3000ea0b56ebc";
 	const COLLECTION_ID = "catalogo_ale";
-	const BUCKET_ID = "6978d1bc000bad7c5671";
+
+	// 🔴 CORRECCIÓN: Este es el ID Real de tu Storage (Bucket)
+	const BUCKET_ID = "6978d7a5001a8a5c7c9e";
 
 	// Sistemas
 	let client, db, storage;
@@ -39,8 +42,7 @@
 
 	function login() {
 		if (passwordInput === ADMIN_PASS) { isLoggedIn = true; cargarInventario(); }
-		else { loginError = true;
-			setTimeout(() => loginError = false, 2000); }
+		else { loginError = true; setTimeout(() => loginError = false, 2000); }
 	}
 
 	async function cargarInventario() {
@@ -64,68 +66,95 @@
 			const matchesCat = !filterCat || p.categoria === filterCat;
 			return matchesSearch && matchesCat;
 		});
+
 	$: totalInventario = inventory.length;
 
 	async function guardarProducto() {
 		loading = true;
 		try {
-			let url1 = form.imagen, url2 = form.imagen2;
+			let url1 = form.imagen;
+			let url2 = form.imagen2;
+
+			// Subimos fotos nuevas si existen
 			if (file1) url1 = await uploadPhoto(file1);
 			if (file2) url2 = await uploadPhoto(file2);
 
-			if (!url1) throw new Error("Foto principal obligatoria");
+			if (!url1) throw new Error("La foto principal es obligatoria");
+
+			// Preparamos los datos asegurando que los números sean números
 			const data = {
-				descripcion: form.descripcion, codigo: form.codigo, categoria: form.categoria,
-				preciopormayor: parseFloat(form.preciopormayor), precioUnidad: parseFloat(form.precioUnidad),
-				moq: parseInt(form.moq), imagen: url1, imagen2: url2, disponible: form.disponible
+				descripcion: form.descripcion,
+				codigo: form.codigo,
+				categoria: form.categoria,
+				preciopormayor: parseFloat(form.preciopormayor),
+				precioUnidad: parseFloat(form.precioUnidad),
+				moq: parseInt(form.moq),
+				imagen: url1,
+				imagen2: url2,
+				disponible: form.disponible
 			};
+
 			if (form.id) {
+				// MODO EDICIÓN
 				await db.updateDocument(DATABASE_ID, COLLECTION_ID, form.id, data);
+
+				// Actualizamos la lista localmente para no recargar todo
 				const idx = inventory.findIndex(p => p.$id === form.id);
 				if(idx > -1) inventory[idx] = { ...inventory[idx], ...data };
-				mostrarMensaje("Actualizado", "success");
+
+				mostrarMensaje("Producto actualizado correctamente", "success");
 			} else {
+				// MODO CREACIÓN
 				const newDoc = await db.createDocument(DATABASE_ID, COLLECTION_ID, ID.unique(), data);
 				inventory = [newDoc, ...inventory];
-				mostrarMensaje("Creado", "success");
+				mostrarMensaje("Producto creado exitosamente", "success");
 			}
+
 			resetForm();
 			showForm = false;
-		} catch (e) { mostrarMensaje(e.message, "error"); }
-		loading = false;
+		} catch (e) {
+			console.error(e);
+			mostrarMensaje("Error: " + e.message, "error");
+		} finally {
+			loading = false;
+		}
 	}
 
 	async function uploadPhoto(file) {
+		// Usamos el BUCKET_ID corregido
 		const up = await storage.createFile(BUCKET_ID, ID.unique(), file);
+		// Retornamos la URL pública con el Project ID para que sea visible
 		return `${ENDPOINT}/storage/buckets/${BUCKET_ID}/files/${up.$id}/view?project=${PROJECT_ID}`;
 	}
 
 	async function toggleStock(item) {
 		const nuevoEstado = !item.disponible;
+		// Optimistic UI update (cambiamos visualmente primero)
 		item.disponible = nuevoEstado;
 		inventory = [...inventory];
+
 		try {
 			await db.updateDocument(DATABASE_ID, COLLECTION_ID, item.$id, { disponible: nuevoEstado });
 		} catch (e) {
+			// Si falla, revertimos
 			item.disponible = !nuevoEstado;
 			inventory = [...inventory];
-			mostrarMensaje("Error stock", "error");
+			mostrarMensaje("No tienes permiso para editar stock", "error");
 		}
 	}
 
 	async function borrar(id) {
-		if(!confirm("¿Borrar?")) return;
+		if(!confirm("¿Estás seguro de borrar este producto?")) return;
 		try {
 			await db.deleteDocument(DATABASE_ID, COLLECTION_ID, id);
 			inventory = inventory.filter(p => p.$id !== id);
-			mostrarMensaje("Eliminado", "success");
+			mostrarMensaje("Producto eliminado", "success");
 		}
-		catch(e) { mostrarMensaje("Error borrando", "error"); }
+		catch(e) { mostrarMensaje("Error al borrar (Revisa permisos)", "error"); }
 	}
 
 	function venderPorWsp(item) {
-		const texto = `Hola!
-		Te envío el detalle:\n\n📦 *${item.descripcion}*\n🔖 Ref: ${item.codigo || 'S/N'}\n💰 Precio: *Bs ${item.preciopormayor}*\n\nVer foto: ${item.imagen}`;
+		const texto = `Hola! Te envío el detalle:\n\n📦 *${item.descripcion}*\n🔖 Ref: ${item.codigo || 'S/N'}\n💰 Precio: *Bs ${item.preciopormayor}*\n\nVer foto: ${item.imagen}`;
 		const url = `https://wa.me/?text=${encodeURIComponent(texto)}`;
 		window.open(url, '_blank');
 	}
@@ -146,8 +175,7 @@
 		const f = e.target.files[0];
 		if (f) {
 			if (num === 1) { file1 = f; preview1 = URL.createObjectURL(f); }
-			else { file2 = f;
-				preview2 = URL.createObjectURL(f); }
+			else { file2 = f; preview2 = URL.createObjectURL(f); }
 		}
 	}
 	function triggerFile(id) { document.getElementById(id).click(); }
@@ -158,7 +186,8 @@
 		}
 	}
 
-	function mostrarMensaje(t, type) { msg = { text: t, type };
+	function mostrarMensaje(t, type) {
+		msg = { text: t, type };
 		setTimeout(() => msg = { text: "", type: "" }, 3000);
 	}
 </script>
