@@ -1,39 +1,34 @@
 ﻿<script lang="ts">
 	import { createEventDispatcher, onMount, onDestroy } from 'svelte';
 	import { fly } from 'svelte/transition';
+
 	export let product: any;
-	export let index: number = 0; // <--- Índice para Lazy Loading inteligente
+	export let index: number = 0; // Índice vital para el Lazy Loading inteligente
+
 	const dispatch = createEventDispatcher();
 
 	const salesTags = [
-		"📦 +1 docena vendida hoy",
-		"🔥 +5 docenas vendidas hoy",
-		"🚀 +2 docenas despachadas ",
-		"🇧🇴 Envíos a los 9 departamentos",
-		"🚚 Saliendo carga a La Paz",
-		"🏔️ Alta rotación en El Alto",
-		"🍇 Pedido frecuente en Tarija",
-		"🌴 Envío listo para Trinidad - Beni",
-		"🌰 Despacho a Riberalta",
-		"🚤 Ruta activa a Rurrenabaque",
-		"🌞 Envíos a Cobija - Pando",
-		"🦕 Saliendo pedido a Sucre",
-		"💎 Top ventas en Cochabamba",
-		"⛏️ Envíos diarios a Potosí y Oruro",
-		"✅ Stock verificado por Ale",
+		"📦 +1 docena vendida hoy", "🔥 +5 docenas vendidas hoy", "🚀 +2 docenas despachadas ",
+		"🇧🇴 Envíos a los 9 departamentos", "🚚 Saliendo carga a La Paz", "🏔️ Alta rotación en El Alto",
+		"🍇 Pedido frecuente en Tarija", "🌴 Envío listo para Trinidad - Beni", "🌰 Despacho a Riberalta",
+		"🚤 Ruta activa a Rurrenabaque", "🌞 Envíos a Cobija - Pando", "🦕 Saliendo pedido a Sucre",
+		"💎 Top ventas en Cochabamba", "⛏️ Envíos diarios a Potosí y Oruro", "✅ Stock verificado por Ale",
 		"⚡ Salida diaria de mercadería"
 	];
+
 	let i = 0;
 	let interval: any;
 
 	onMount(() => {
-		const delay = Math.random() * 2000;
+		// Retrasamos el inicio de la animación para no afectar la carga inicial (LCP)
+		const delay = 2000 + Math.random() * 2000;
 		setTimeout(() => {
 			interval = setInterval(() => {
 				i = (i + 1) % salesTags.length;
 			}, 3500);
 		}, delay);
 	});
+
 	onDestroy(() => {
 		if (interval) clearInterval(interval);
 	});
@@ -59,12 +54,14 @@
 		</div>
 	{/if}
 
-	<div class="aspect-square w-full rounded-xl overflow-hidden flex items-center justify-center relative p-1 mb-1">
+	<div class="aspect-square w-full rounded-xl overflow-hidden flex items-center justify-center relative p-1 mb-1 bg-gray-50">
 		<img
-			src="{product.imagen}&width=400&quality=75&output=webp"
+			src="{product.imagen}&width=400&height=400&quality=75&output=webp"
 			alt={product.descripcion}
 			loading={index < 4 ? "eager" : "lazy"}
 			fetchpriority={index < 4 ? "high" : "auto"}
+			width="400"
+			height="400"
 			class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 { !product.disponible ? 'grayscale' : '' }"
 		/>
 	</div>
