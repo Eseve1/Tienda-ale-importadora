@@ -16,7 +16,6 @@
 
 	const client = new Client().setEndpoint(ENDPOINT).setProject(PROJECT_ID);
 	const db = new Databases(client);
-
 	let productos: any[] = [];
 	let loading = true;
 	let loadingMore = false;
@@ -31,9 +30,7 @@
 	let offset = 0;
 	let hasMore = true;
 	let debounceTimer: any;
-
 	const categorias = ["Todo", "Belleza y salud", "Herramientas", "Hogar y cocina", "Infantil", "Moda y equipaje", "Oficina y escolar", "Tecnología"];
-
 	async function cargarProductos(cat = "Todo", isSearch = false, loadMore = false) {
 		if (loadMore) {
 			loadingMore = true;
@@ -73,7 +70,6 @@
 				if (a.disponible !== true && b.disponible === true) return 1;
 				return 0;
 			});
-
 			productos = loadMore ? [...productos, ...nuevos] : nuevos;
 			offset += nuevos.length;
 
@@ -277,7 +273,7 @@
 						</div>
 					{/if}
 
-					<div class="w-full h-64 md:h-96 flex items-center justify-center mb-4">
+					<div class="w-full h-52 md:h-96 flex items-center justify-center mb-4">
 						<img
 							src="{activeImage || selectedProduct.imagen}&width=600&quality=80&output=webp"
 							alt={selectedProduct.descripcion}
@@ -303,13 +299,19 @@
 					{/if}
 				</div>
 
-				<div class="w-full md:w-1/2 p-6 md:p-12 flex flex-col overflow-y-auto">
-					<span class="text-[#f7421e] font-black text-[10px] uppercase tracking-wider mb-2 block">Ref: {selectedProduct.codigo}</span>
-					<h2 class="text-xl md:text-3xl font-black text-gray-900 leading-tight mb-4">{selectedProduct.descripcion}</h2>
+				<div class="w-full md:w-1/2 p-5 md:p-12 flex flex-col overflow-y-auto">
+					<span class="text-gray-400 font-bold text-[10px] uppercase tracking-wider mb-2 block">Ref: {selectedProduct.codigo}</span>
+
+					<h2 class="text-xl md:text-2xl font-black text-[#222] leading-tight mb-4 capitalize">{selectedProduct.descripcion.toLowerCase()}</h2>
 
 					<div class="bg-gray-50 p-5 rounded-2xl mb-6 border border-gray-100">
-						<div class="text-[#f7421e] text-4xl md:text-5xl font-black italic tracking-tighter">Bs. {Number(selectedProduct.preciopormayor).toFixed(2)}</div>
-						<div class="text-gray-400 text-[10px] font-bold mt-2 uppercase tracking-widest">Pedido Mínimo: {selectedProduct.moq || 1} unidades</div>
+						<div class="flex items-baseline gap-1">
+							<span class="text-lg font-bold text-[#222]">Bs.</span>
+							<span class="text-4xl font-black text-[#222] tracking-tight">{Number(selectedProduct.preciopormayor).toFixed(2)}</span>
+						</div>
+						<div class="text-[#222] text-[11px] font-bold mt-2 uppercase tracking-wide">
+							{selectedProduct.moq || 12} unidades (MOQ)
+						</div>
 					</div>
 
 					{#if selectedProduct.disponible}
