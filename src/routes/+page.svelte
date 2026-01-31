@@ -32,6 +32,15 @@
 	let debounceTimer: any;
 	const categorias = ["Todo", "Belleza y salud", "Herramientas", "Hogar y cocina", "Infantil", "Moda y equipaje", "Oficina y escolar", "Tecnología"];
 
+	// FUNCIÓN DE BARAJADO (SHUFFLE): Mantiene la tienda fresca visualmente
+	function shuffleArray(array: any[]) {
+		for (let i = array.length - 1; i > 0; i--) {
+			const j = Math.floor(Math.random() * (i + 1));
+			[array[i], array[j]] = [array[j], array[i]];
+		}
+		return array;
+	}
+
 	async function cargarProductos(cat = "Todo", isSearch = false, loadMore = false) {
 		if (loadMore) {
 			loadingMore = true;
@@ -44,6 +53,7 @@
 		}
 
 		try {
+			// 1. SEO: Siempre pedimos los datos MÁS RECIENTES a la base de datos
 			const queries: any[] = [
 				Query.limit(LIMIT),
 				Query.offset(offset),
@@ -66,11 +76,18 @@
 			const res = await db.listDocuments(DB_ID, COLLECTION_ID, queries);
 			let nuevos = res.documents ?? [];
 
+			// 2. UX: Si es la primera carga, mezclamos los productos para dar variedad
+			if (!loadMore && !searchTerm) {
+				nuevos = shuffleArray(nuevos);
+			}
+
+			// 3. LOGICA: Siempre ponemos los DISPONIBLES primero, incluso después de mezclar
 			nuevos = nuevos.sort((a, b) => {
 				if (a.disponible === true && b.disponible !== true) return -1;
 				if (a.disponible !== true && b.disponible === true) return 1;
 				return 0;
 			});
+
 			productos = loadMore ? [...productos, ...nuevos] : nuevos;
 			offset += nuevos.length;
 
@@ -109,7 +126,6 @@
 
 	function añadirYSalir() {
 		if (selectedProduct) {
-			// Añade MOQ o 12 por defecto
 			cart.add(selectedProduct, selectedProduct.moq || 12);
 			cerrarModal();
 		}
@@ -306,46 +322,91 @@
 
 					<h2 class="text-xl md:text-2xl font-black text-[#222] leading-tight mb-4 capitalize">{selectedProduct.descripcion.toLowerCase()}</h2>
 
-					<div class="bg-gray-50 p-5 rounded-2xl mb-6 border border-gray-100 relative overflow-hidden group">
+					<div class="bg-[#fff0ed] p-5 rounded-2xl mb-6 border-2 border-[#f7421e]/10 relative overflow-hidden">
 
 						{#if selectedProduct.precioUnidad && selectedProduct.precioUnidad > selectedProduct.preciopormayor}
-							<div class="flex items-center gap-2 mb-1">
-                                <span class="text-gray-400 text-xs font-bold line-through decoration-red-400/50">
-                                    Precio Tienda: Bs. {Number(selectedProduct.precioUnidad).toFixed(2)}
-                                </span>
-
-								<span class="bg-[#f7421e] text-white text-[10px] font-black px-1.5 py-0.5 rounded shadow-sm shadow-orange-200">
-                                    -{Math.round(((selectedProduct.precioUnidad - selectedProduct.preciopormayor) / selectedProduct.precioUnidad) * 100)}% OFF
-                                </span>
+							<div class="flex items-center gap-2 mb-2">
+								<span class="text-gray-400 text-xs font-bold line-through decoration-red-400/50">
+									Precio Tienda: Bs. {Number(selectedProduct.precioUnidad).toFixed(2)}
+								</span>
+								<span class="bg-[#f7421e] text-white text-[10px] font-black px-1.5 py-0.5 rounded shadow-sm">
+									AHORRAS {Math.round(((selectedProduct.precioUnidad - selectedProduct.preciopormayor) / selectedProduct.precioUnidad) * 100)}%
+								</span>
 							</div>
 						{/if}
 
-						<div class="flex items-baseline gap-1">
-							<span class="text-lg font-bold text-[#222]">Bs.</span>
-							<span class="text-4xl font-black text-[#222] tracking-tight">{Number(selectedProduct.preciopormayor).toFixed(2)}</span>
-						</div>
+						<div class="flex flex-col">
+							<div class="flex items-baseline flex-wrap gap-x-1">
+								<span class="text-lg font-bold text-[#222]">Bs.</span>
+								<span class="text-5xl font-black text-[#222] tracking-tighter">
+									{Number(selectedProduct.preciopormayor).toFixed(2)}
+								</span>
+								<span class="text-sm font-bold text-gray-400 ml-1">x unidad</span>
+							</div>
 
-						<div class="text-[#222] text-[11px] font-bold mt-2 uppercase tracking-wide flex items-center gap-1 opacity-80">
-							<svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-							Llevando {selectedProduct.moq || 12} unidades
+							<div class="mt-3 flex items-center gap-2 bg-white px-3 py-2 rounded-lg border border-[#f7421e]/30 shadow-sm w-full md:w-fit">
+								<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-[#f7421e] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+								</svg>
+								<div class="flex flex-col leading-none">
+									<span class="text-[#f7421e] font-black text-[10px] uppercase">Condición de Venta:</span>
+									<span class="text-[#222] font-bold text-xs">
+										Mínimo {selectedProduct.moq || 12} unidades
+									</span>
+								</div>
+							</div>
 						</div>
 					</div>
 
 					{#if selectedProduct.disponible}
 						<button
 							on:click={añadirYSalir}
-							class="w-full bg-[#00C853] hover:bg-[#00a844] text-white py-4 md:py-5 rounded-2xl font-black uppercase text-xs tracking-[0.1em] shadow-xl shadow-green-100 active:scale-95 transition-all mt-auto"
+							class="w-full bg-[#00C853] hover:bg-[#00a844] text-white py-4 md:py-5 rounded-2xl font-black uppercase text-xs tracking-[0.1em] shadow-xl shadow-green-100 active:scale-95 transition-all mb-4"
 						>
-							Confirmar y Añadir
+							AÑADIR AL PEDIDO
 						</button>
 					{:else}
 						<button
 							disabled
-							class="w-full bg-gray-200 text-gray-400 py-4 md:py-5 rounded-2xl font-black uppercase text-xs tracking-[0.1em] mt-auto cursor-not-allowed"
+							class="w-full bg-gray-200 text-gray-400 py-4 md:py-5 rounded-2xl font-black uppercase text-xs tracking-[0.1em] mb-4 cursor-not-allowed"
 						>
 							Producto Agotado
 						</button>
 					{/if}
+
+					{#if selectedProduct.precioUnidad}
+						<div class="border-t border-gray-100 pt-5 mt-auto">
+							<p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider text-center mb-3">
+								¿Necesitas menos de {selectedProduct.moq || 12} unidades?<br>
+								<span class="text-[#0085FF] font-black mt-1 block">VISÍTANOS EN SUCURSALES (Venta al detalle)</span>
+							</p>
+
+							<div class="grid grid-cols-2 gap-3">
+								<a
+									href="https://www.google.com/maps/search/?api=1&query=Importadora+Ale+Cañoto+Santa+Cruz"
+									target="_blank"
+									class="flex flex-col items-center justify-center p-3 bg-white border border-gray-200 rounded-xl hover:border-[#0085FF] hover:bg-blue-50/50 hover:text-[#0085FF] transition-all group"
+								>
+									<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mb-1 text-gray-400 group-hover:text-[#0085FF] transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+									<span class="font-bold text-[10px] text-center">Sucursal Cañoto</span>
+								</a>
+
+								<a
+									href="https://www.google.com/maps/search/?api=1&query=Importadora+Ale+Los+Pozos+Santa+Cruz"
+									target="_blank"
+									class="flex flex-col items-center justify-center p-3 bg-white border border-gray-200 rounded-xl hover:border-[#0085FF] hover:bg-blue-50/50 hover:text-[#0085FF] transition-all group"
+								>
+									<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mb-1 text-gray-400 group-hover:text-[#0085FF] transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+									<span class="font-bold text-[10px] text-center">Sucursal Los Pozos</span>
+								</a>
+							</div>
+
+							<p class="text-[9px] text-gray-300 text-center mt-3 font-medium">
+								*Precio en tienda: Bs. {Number(selectedProduct.precioUnidad).toFixed(2)}
+							</p>
+						</div>
+					{/if}
+
 				</div>
 			</div>
 		</div>
