@@ -1,83 +1,84 @@
 import { writable } from 'svelte/store';
 
-function createCart() {
-	// EL CAMBIO CLAVE: "as any[]" para que TS no moleste
-	const { subscribe, set, update } = writable({
-		items: [] as any[],
-		isOpen: false,
-		total: 0,
-		count: 0
-	});
+// Definimos la estructura del carrito
+interface CartItem {
+	product: any;
+	quantity: number;
+	price: number;
+}
 
-	let timer: any;
+interface CartState {
+	items: CartItem[];
+	isOpen: boolean;
+	total: number;
+	count: number;
+}
+
+// Estado inicial
+const initialState: CartState = {
+	items: [],
+	isOpen: false,
+	total: 0,
+	count: 0
+};
+
+function createCart() {
+	const { subscribe, update, set } = writable(initialState);
+
+	// Calcular totales automáticamente
+	const recalcular = (items: CartItem[], isOpen: boolean) => {
+		return {
+			items,
+			isOpen,
+			total: items.reduce((sum, i) => sum + (i.price * i.quantity), 0),
+			count: items.reduce((sum, i) => sum + i.quantity, 0)
+		};
+	};
 
 	return {
 		subscribe,
-		setIsOpen: (val: boolean) => {
-			if (val) clearTimeout(timer);
-			update(s => ({ ...s, isOpen: val }));
-		},
 
-		add: (product: any, quantity: number) => {
-			update((state) => {
-				// Comparación segura de IDs
-				const pId = product.$id || product.id || product.codigo;
-				const existingIndex = state.items.findIndex((i) => {
-					const iId = i.product.$id || i.product.id || i.product.codigo;
-					return iId === pId;
-				});
+		// Abrir/Cerrar
+		setIsOpen: (isOpen: boolean) => update(s => ({ ...s, isOpen })),
 
-				let newItems = [...state.items];
-				// Asegurar que precio sea número
-				const price = Number(product.preciopormayor || product.price || 0);
+		// Añadir producto
+		add: (product: any, quantity: number) => update(s => {
+			const existing = s.items.find(i => i.product.$id === product.$id);
+			let newItems;
+			// Usamos el precio mayorista
+			const price = product.preciopormayor || 0;
 
-				if (existingIndex >= 0) {
-					newItems[existingIndex].quantity += quantity;
-				} else {
-					newItems.push({
-						product,
-						quantity,
-						price
-					});
+			if (existing) {
+				newItems = s.items.map(i =>
+					i.product.$id === product.$id
+						? { ...i, quantity: i.quantity + quantity }
+						: i
+				);
+			} else {
+				newItems = [...s.items, { product, quantity, price }];
+			}
+			return recalcular(newItems, true); // Abre el carrito al añadir
+		}),
+
+		// Actualizar cantidad
+		updateQuantity: (productId: string, delta: number) => update(s => {
+			const newItems = s.items.map(i => {
+				if (i.product.$id === productId) {
+					return { ...i, quantity: Math.max(1, i.quantity + delta) };
 				}
-
-				const total = newItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-				const count = newItems.reduce((acc, item) => acc + item.quantity, 0);
-
-				return { items: newItems, total, count, isOpen: true };
+				return i;
 			});
+			return recalcular(newItems, s.isOpen);
+		}),
 
-			// Auto-cierre a los 3 seg
-			if (timer) clearTimeout(timer);
-			timer = setTimeout(() => {
-				update(s => ({ ...s, isOpen: false }));
-			}, 3000);
-		},
+		// ✅ ESTA ES LA FUNCIÓN QUE FALTABA (ELIMINAR)
+		remove: (productId: string) => update(s => {
+			const newItems = s.items.filter(i => i.product.$id !== productId);
+			return recalcular(newItems, s.isOpen);
+		}),
 
-		updateQuantity: (productId: string, delta: number) => {
-			update((state) => {
-				const newItems = state.items.map(item => {
-					const iId = item.product.$id || item.product.id || item.product.codigo;
-					if (iId === productId) {
-						const newQty = Math.max(1, item.quantity + delta);
-						return { ...item, quantity: newQty };
-					}
-					return item;
-				});
-				// Recalcular totales
-				const total = newItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-				const count = newItems.reduce((acc, item) => acc + item.quantity, 0);
-				return { ...state, items: newItems, total, count };
-			});
-		},
-
-		clear: () => {
-			set({ items: [], isOpen: false, total: 0, count: 0 });
-		},
-
-		openCart: () => {
-			update(s => ({ ...s, isOpen: true }));
-		}
+		// Vaciar carrito
+		clear: () => set(initialState)
 	};
 }
 

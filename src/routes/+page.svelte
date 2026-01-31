@@ -31,6 +31,7 @@
 	let hasMore = true;
 	let debounceTimer: any;
 	const categorias = ["Todo", "Belleza y salud", "Herramientas", "Hogar y cocina", "Infantil", "Moda y equipaje", "Oficina y escolar", "Tecnología"];
+
 	async function cargarProductos(cat = "Todo", isSearch = false, loadMore = false) {
 		if (loadMore) {
 			loadingMore = true;
@@ -108,7 +109,8 @@
 
 	function añadirYSalir() {
 		if (selectedProduct) {
-			cart.add(selectedProduct, selectedProduct.moq || 1);
+			// Añade MOQ o 12 por defecto
+			cart.add(selectedProduct, selectedProduct.moq || 12);
 			cerrarModal();
 		}
 	}
@@ -134,14 +136,14 @@
 
 <svelte:head>
 	<title>Ale Importadora | Catálogo Mayorista y Novedades en Santa Cruz</title>
-
 	<meta name="description" content="Descubre el catálogo virtual de importación directa en Bolivia. Precios de fábrica en Hogar, Tecnología, Belleza y Juguetes. Abastece tu negocio hoy mismo." />
-
 	<meta property="og:type" content="website" />
 	<meta property="og:title" content="Ale Importadora | Catálogo Mayorista en Bolivia" />
 	<meta property="og:description" content="Precios de locura para revendedores. Mira el catálogo actualizado aquí." />
-	<meta property="og:image" content="https://importadoraale.app/logo-social.png" /> <link rel="canonical" href="https://importadoraale.app" />
+	<meta property="og:image" content="https://importadoraale.app/logo-social.png" />
+	<link rel="canonical" href="https://importadoraale.app" />
 </svelte:head>
+
 <svelte:window bind:scrollY={y} />
 
 <div class="min-h-screen bg-[#fcfcfc] flex flex-col font-sans selection:bg-[#f7421e] selection:text-white">
@@ -304,13 +306,28 @@
 
 					<h2 class="text-xl md:text-2xl font-black text-[#222] leading-tight mb-4 capitalize">{selectedProduct.descripcion.toLowerCase()}</h2>
 
-					<div class="bg-gray-50 p-5 rounded-2xl mb-6 border border-gray-100">
+					<div class="bg-gray-50 p-5 rounded-2xl mb-6 border border-gray-100 relative overflow-hidden group">
+
+						{#if selectedProduct.precioUnidad && selectedProduct.precioUnidad > selectedProduct.preciopormayor}
+							<div class="flex items-center gap-2 mb-1">
+                                <span class="text-gray-400 text-xs font-bold line-through decoration-red-400/50">
+                                    Precio Tienda: Bs. {Number(selectedProduct.precioUnidad).toFixed(2)}
+                                </span>
+
+								<span class="bg-[#f7421e] text-white text-[10px] font-black px-1.5 py-0.5 rounded shadow-sm shadow-orange-200">
+                                    -{Math.round(((selectedProduct.precioUnidad - selectedProduct.preciopormayor) / selectedProduct.precioUnidad) * 100)}% OFF
+                                </span>
+							</div>
+						{/if}
+
 						<div class="flex items-baseline gap-1">
 							<span class="text-lg font-bold text-[#222]">Bs.</span>
 							<span class="text-4xl font-black text-[#222] tracking-tight">{Number(selectedProduct.preciopormayor).toFixed(2)}</span>
 						</div>
-						<div class="text-[#222] text-[11px] font-bold mt-2 uppercase tracking-wide">
-							{selectedProduct.moq || 12} unidades (MOQ)
+
+						<div class="text-[#222] text-[11px] font-bold mt-2 uppercase tracking-wide flex items-center gap-1 opacity-80">
+							<svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+							Llevando {selectedProduct.moq || 12} unidades
 						</div>
 					</div>
 
