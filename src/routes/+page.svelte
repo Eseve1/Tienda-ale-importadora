@@ -304,7 +304,19 @@
 					<div class="w-full h-56 md:h-96 flex items-center justify-center mb-2 md:mb-4">
 						<img
 							src="{activeImage || selectedProduct.imagen}&width=800&quality=85&output=webp"
+							srcset="
+							  {activeImage || selectedProduct.imagen}&width=400&quality=85&output=webp 400w,
+							  {activeImage || selectedProduct.imagen}&width=800&quality=85&output=webp 800w
+							"
+							sizes="(max-width: 768px) 400px, 800px"
 							alt={selectedProduct.descripcion}
+							loading="lazy"
+							on:error={(event) => {
+								const target = event.target;
+								if (target instanceof HTMLImageElement) {
+									target.src = '/path/to/fallback-image.webp';
+								}
+							}}
 							class="h-full w-full object-contain mix-blend-multiply { !selectedProduct.disponible ? 'grayscale opacity-50' : '' }"
 						/>
 					</div>

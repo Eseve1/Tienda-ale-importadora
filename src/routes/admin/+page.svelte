@@ -401,9 +401,18 @@
 
 									<div class="aspect-square bg-gray-50 rounded-lg overflow-hidden flex items-center justify-center p-2 border border-gray-100">
 										{#if item.imagen}
-											<img src={item.imagen} alt={item.descripcion} class="w-full h-full object-contain mix-blend-multiply">
-										{:else}
-											<span class="text-3xl opacity-20">📦</span>
+											<img
+												src="{item.imagen}&width=400&height=400&quality=80&output=webp"
+												alt={item.descripcion || 'Imagen del producto'}
+												loading="lazy"
+												class="w-full h-full object-contain mix-blend-multiply"
+											/>
+											<!-- Fallback visual -->
+											{#if !item.imagen}
+												<div class="h-full w-full flex items-center justify-center bg-gray-200">
+													<span class="text-gray-500">Imagen no disponible</span>
+												</div>
+											{/if}
 										{/if}
 									</div>
 
