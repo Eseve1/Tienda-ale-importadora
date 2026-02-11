@@ -301,7 +301,7 @@
 							tabindex="0"
 						>
 							{#if preview1}
-								<img src={preview1} class="w-full h-full object-cover" alt="p1">
+								<img src={`${preview1}&width=400&quality=80&output=webp`} class="w-full h-full object-cover" alt="p1" loading="lazy" on:error={(event) => { event.target.src = '/path/to/fallback-image.webp'; }}>
 								<button class="absolute top-1 right-1 bg-white text-red-500 rounded-full w-5 h-5 flex items-center justify-center shadow-md hover:bg-red-50" on:click|stopPropagation={()=>{file1=null;preview1="";form.imagen=""}}>✕</button>
 							{:else}
 								<span class="text-xl opacity-30 group-hover:opacity-100 transition-opacity">📸</span>
@@ -318,7 +318,7 @@
 							tabindex="0"
 						>
 							{#if preview2}
-								<img src={preview2} class="w-full h-full object-cover" alt="p2">
+								<img src={`${preview2}&width=400&quality=80&output=webp`} class="w-full h-full object-cover" alt="p2" loading="lazy" on:error={(event) => { event.target.src = '/path/to/fallback-image.webp'; }}>
 								<button class="absolute top-1 right-1 bg-white text-red-500 rounded-full w-5 h-5 flex items-center justify-center shadow-md hover:bg-red-50" on:click|stopPropagation={()=>{file2=null;preview2="";form.imagen2=""}}>✕</button>
 							{:else}
 								<span class="text-xl opacity-20 group-hover:opacity-100 transition-opacity">📷</span>

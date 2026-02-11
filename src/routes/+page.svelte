@@ -163,10 +163,10 @@
 	<meta property="og:type" content="website" />
 	<meta property="og:title" content="Ale Importadora | Catálogo Mayorista en Bolivia" />
 	<meta property="og:description" content="Precios de locura para revendedores. Mira el catálogo actualizado aquí." />
-	<meta property="og:image" content="https://importadoraale.app/logo-social.png" />
+	<meta property="og:image" content="https://importadoraale.app/og-image.jpg" />
 	<meta property="og:image:width" content="1200" />
 	<meta property="og:image:height" content="630" />
-	<meta property="og:image:alt" content="Logo de Ale Importadora" />
+	<meta property="og:image:alt" content="Imagen destacada de Ale Importadora" />
 	<link rel="canonical" href="https://importadoraale.app" />
 </svelte:head>
 

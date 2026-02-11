@@ -243,7 +243,18 @@ onMount(async () => {
 
 				<!-- Image -->
 				<div class="w-full bg-gray-50 p-4 flex justify-center items-center">
-					<img src={selectedProduct.imagen} alt={selectedProduct.descripcion} class="w-full h-auto max-h-60 object-contain rounded-md" />
+					<img
+						src={`${selectedProduct.imagen}&width=400&quality=80&output=webp`}
+						alt={selectedProduct.descripcion}
+						loading="lazy"
+						class="w-full h-auto max-h-60 object-contain rounded-md"
+						on:error={(event) => {
+							const target = event.currentTarget;
+							if (target instanceof HTMLImageElement) {
+								target.src = '/path/to/fallback-image.webp';
+							}
+						}}
+					/>
 				</div>
 
 				<!-- Buttons de ubicacion -->
