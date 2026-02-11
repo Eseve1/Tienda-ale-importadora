@@ -42,11 +42,11 @@ function createCart() {
 		setIsOpen: (isOpen: boolean) => update(s => ({ ...s, isOpen })),
 
 		// Añadir producto
-		add: (product: any, quantity: number) => update(s => {
+		add: (product: any, quantity: number, tipoPrecio: 'mayorista' | 'unidad') => update(s => {
 			const existing = s.items.find(i => i.product.$id === product.$id);
 			let newItems;
-			// Usamos el precio mayorista
-			const price = product.preciopormayor || 0;
+			// Usamos el precio según el tipo seleccionado
+			const price = tipoPrecio === 'mayorista' ? product.preciopormayor : product.precioUnidad;
 
 			if (existing) {
 				newItems = s.items.map(i =>
@@ -71,7 +71,7 @@ function createCart() {
 			return recalcular(newItems, s.isOpen);
 		}),
 
-		// ✅ ESTA ES LA FUNCIÓN QUE FALTABA (ELIMINAR)
+		// Eliminar producto
 		remove: (productId: string) => update(s => {
 			const newItems = s.items.filter(i => i.product.$id !== productId);
 			return recalcular(newItems, s.isOpen);

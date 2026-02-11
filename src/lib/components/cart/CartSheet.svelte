@@ -2,6 +2,7 @@
 	import { cart } from '$lib/stores/cart';
 	import { browser } from '$app/environment';
 	import { fade, slide } from 'svelte/transition';
+	import { writable } from 'svelte/store';
 
 	const PHONE = '59161333335';
 
@@ -28,6 +29,13 @@
 	function handleKeydown(e: KeyboardEvent) {
 		if (e.key === 'Escape') cart.setIsOpen(false);
 	}
+
+	function calcularDescuento(precio: number, descuento: number): number {
+		return precio - (precio * descuento) / 100;
+	}
+
+	// Estado para el producto seleccionado en los modales
+	export const selectedProduct = writable(null);
 </script>
 
 <div class="fixed right-4 bottom-4 z-[400] flex flex-col items-end gap-4 pointer-events-none">
@@ -144,3 +152,89 @@
 		</div>
 	</div>
 {/if}
+
+<!-- Modal de precios por unidad y por mayor unificados -->
+{#if $selectedProduct}
+<div class="modal-precio">
+	<div class="modal-header">
+		<h2 class="text-lg font-bold text-[#222] font-poppins">
+			{#if $selectedProduct.moq === 1}
+				Precio por Unidad
+			{:else}
+				Precio por Mayor
+			{/if}
+		</h2>
+	</div>
+	<div class="modal-body">
+		<img src="{$selectedProduct.imagen}" alt="{$selectedProduct.descripcion}" class="modal-image" />
+		<h3 class="text-md font-semibold text-[#222] font-poppins">{$selectedProduct.descripcion}</h3>
+		<p class="text-sm text-gray-500 font-poppins">Ref: {$selectedProduct.codigo}</p>
+		{#if $selectedProduct.moq === 1}
+			<p class="text-lg font-bold text-[#222] font-poppins">Precio: Bs. {calcularDescuento($selectedProduct.precioUnidad, 20).toFixed(2)}</p>
+		{:else}
+			<p class="text-lg font-bold text-[#222] font-poppins">Precio Total: Bs. {($selectedProduct.preciopormayor * $selectedProduct.moq).toFixed(2)}</p>
+		{/if}
+	</div>
+	<div class="modal-footer">
+		<button class="btn-agregar-carrito">
+			{#if $selectedProduct.moq === 1}
+				Añadir al carrito
+			{:else}
+				Añadir al pedido
+			{/if}
+		</button>
+	</div>
+</div>
+{/if}
+
+<style>
+	.modal-precio {
+		background-color: #fff;
+		border-radius: 12px;
+		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+		padding: 16px;
+		max-width: 400px;
+		margin: auto;
+	}
+
+	.modal-header {
+		text-align: center;
+		margin-bottom: 16px;
+	}
+
+	.modal-image {
+		width: 100%;
+		height: auto;
+		border-radius: 8px;
+		margin-bottom: 16px;
+	}
+
+	.modal-body {
+		text-align: center;
+	}
+
+	.modal-footer {
+		margin-top: 16px;
+		display: flex;
+		justify-content: center;
+	}
+
+	.btn-agregar-carrito {
+		background-color: #00C853;
+		color: #fff;
+		padding: 12px 24px;
+		border-radius: 8px;
+		font-weight: bold;
+		text-transform: uppercase;
+		font-family: 'Poppins', sans-serif;
+		transition: background-color 0.3s;
+	}
+
+	.btn-agregar-carrito:hover {
+		background-color: #00a844;
+	}
+
+	.font-poppins {
+		font-family: 'Poppins', sans-serif;
+	}
+</style>

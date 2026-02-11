@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { Client, Databases, Query } from 'appwrite';
-	import { fade, fly } from 'svelte/transition';
+	import { goto } from '$app/navigation';
 
 	import WholesaleCard from '$lib/components/grid/WholesaleCard.svelte';
 	import CartSheet from '$lib/components/cart/CartSheet.svelte';
@@ -120,9 +120,10 @@
 		if (typeof document !== 'undefined') document.body.style.overflow = '';
 	}
 
-	function añadirYSalir() {
+	function addAndExit() {
 		if (selectedProduct) {
-			cart.add(selectedProduct, selectedProduct.moq || 12);
+			const priceType = selectedProduct.moq > 1 ? "mayorista" : "unidad"; // Determinar el tipo de precio
+			cart.add(selectedProduct, selectedProduct.moq || 12, priceType);
 			cerrarModal();
 		}
 	}
@@ -144,6 +145,16 @@
 			}
 		}
 	});
+
+	let showSelector = true;
+
+	function elegirModo(modo: 'mayor' | 'unidad') {
+		if (modo === 'mayor') {
+			showSelector = false;
+		} else {
+			goto('/precios-unidad');
+		}
+	}
 </script>
 
 <svelte:head>
@@ -153,6 +164,9 @@
 	<meta property="og:title" content="Ale Importadora | Catálogo Mayorista en Bolivia" />
 	<meta property="og:description" content="Precios de locura para revendedores. Mira el catálogo actualizado aquí." />
 	<meta property="og:image" content="https://importadoraale.app/logo-social.png" />
+	<meta property="og:image:width" content="1200" />
+	<meta property="og:image:height" content="630" />
+	<meta property="og:image:alt" content="Logo de Ale Importadora" />
 	<link rel="canonical" href="https://importadoraale.app" />
 </svelte:head>
 
@@ -316,14 +330,14 @@
 				<div class="w-full md:w-1/2 p-3 md:p-12 flex flex-col overflow-y-auto">
 					<span class="text-gray-400 font-bold text-[10px] uppercase tracking-wider mb-0.5 block">Ref: {selectedProduct.codigo}</span>
 
-					<h2 class="text-base md:text-2xl font-black text-[#222] leading-tight mb-2 capitalize">{selectedProduct.descripcion.toLowerCase()}</h2>
+					<h2 class="text-base md:text-2xl font-black text-[#222] leading-tight mb-2 capitalize font-poppins">{selectedProduct.descripcion.toLowerCase()}</h2>
 
 					<div class="bg-[#fff0ed] p-2.5 md:p-6 rounded-2xl mb-2 md:mb-6 border-2 border-[#f7421e]/10 flex flex-col justify-center relative">
 
 						{#if selectedProduct.precioUnidad && selectedProduct.precioUnidad > selectedProduct.preciopormayor}
 							<div class="flex flex-wrap items-center gap-2 mb-0.5">
 								<span class="text-gray-400 text-[10px] font-bold line-through decoration-red-400/50">
-									Tienda: Bs. {Number(selectedProduct.precioUnidad).toFixed(2)}
+									Precio Tienda: Bs. {Number(selectedProduct.precioUnidad).toFixed(2)}
 								</span>
 								<span class="bg-[#f7421e] text-white text-[9px] font-black px-2 py-0.5 rounded shadow-sm">
 									-{Math.round(((selectedProduct.precioUnidad - selectedProduct.preciopormayor) / selectedProduct.precioUnidad) * 100)}%
@@ -346,9 +360,9 @@
 								</svg>
 							</div>
 							<div class="flex flex-col leading-none">
-								<span class="text-[#f7421e] font-black text-[9px] uppercase mb-0.5">Condición:</span>
+								<span class="text-[#f7421e] font-black text-[9px] uppercase mb-0.5">MOQ:</span>
 								<span class="text-[#222] font-bold text-[10px] md:text-sm">
-									Mínimo {selectedProduct.moq || 12} un.
+									Mínimo {selectedProduct.moq || 12} unidad.
 								</span>
 							</div>
 						</div>
@@ -356,7 +370,7 @@
 
 					{#if selectedProduct.disponible}
 						<button
-							on:click={añadirYSalir}
+							on:click={addAndExit}
 							class="w-full bg-[#00C853] hover:bg-[#00a844] text-white py-3 md:py-5 rounded-2xl font-black uppercase text-xs tracking-[0.1em] shadow-xl shadow-green-100 active:scale-95 transition-all mb-2 md:mb-4"
 						>
 							AÑADIR AL PEDIDO
@@ -372,38 +386,20 @@
 
 					{#if selectedProduct.precioUnidad}
 						<div class="border-t border-gray-100 pt-2 md:pt-5 mt-auto">
-							<p class="text-[9px] md:text-[10px] text-gray-400 font-bold uppercase tracking-wider text-center mb-2">
-								¿Necesitas menos de {selectedProduct.moq || 12} unidades?<br>
-								<span class="text-[#0085FF] font-black mt-1 block">VISÍTANOS EN SUCURSALES</span>
-							</p>
-
-							<div class="grid grid-cols-2 gap-2 md:gap-3">
-								<a
-									href="https://www.google.com/maps/search/?api=1&query=Importadora+Ale+Cañoto+Santa+Cruz"
-									target="_blank"
-									class="flex flex-col items-center justify-center p-2 md:p-3 bg-white border border-gray-200 rounded-xl hover:border-[#0085FF] hover:bg-blue-50/50 hover:text-[#0085FF] transition-all group"
-								>
-									<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 md:h-5 md:w-5 mb-1 text-gray-400 group-hover:text-[#0085FF] transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-									<span class="font-bold text-[9px] md:text-[10px] text-center">Sucursal Cañoto</span>
-								</a>
-
-								<a
-									href="https://www.google.com/maps/search/?api=1&query=Importadora+Ale+Los+Pozos+Santa+Cruz"
-									target="_blank"
-									class="flex flex-col items-center justify-center p-2 md:p-3 bg-white border border-gray-200 rounded-xl hover:border-[#0085FF] hover:bg-blue-50/50 hover:text-[#0085FF] transition-all group"
-								>
-									<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 md:h-5 md:w-5 mb-1 text-gray-400 group-hover:text-[#0085FF] transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-									<span class="font-bold text-[9px] md:text-[10px] text-center">Sucursal Los Pozos</span>
-								</a>
-							</div>
-
-							<p class="text-[9px] text-gray-300 text-center mt-2 font-medium">
-								*Precio en tienda: Bs. {Number(selectedProduct.precioUnidad).toFixed(2)}
-							</p>
 						</div>
 					{/if}
 
 				</div>
+			</div>
+		</div>
+	{/if}
+
+	{#if showSelector}
+		<div class="fixed inset-0 z-[9999] bg-black/80 flex items-center justify-center">
+			<div class="bg-white rounded-2xl shadow-2xl p-8 flex flex-col items-center gap-6 max-w-xs w-full">
+				<h2 class="text-xl font-black text-[#f7421e] mb-2 text-center">¿Cómo quieres ver los precios?</h2>
+				<button class="w-full bg-[#f7421e] text-white font-bold py-3 rounded-xl text-lg mb-2 hover:bg-[#d12e0e] transition-all" on:click={() => elegirModo('mayor')}>Precios por Mayor</button>
+				<button class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl text-lg hover:bg-blue-800 transition-all" on:click={() => elegirModo('unidad')}>Precios por Unidad</button>
 			</div>
 		</div>
 	{/if}

@@ -79,7 +79,11 @@
 			if (file1) url1 = await uploadPhoto(file1);
 			if (file2) url2 = await uploadPhoto(file2);
 
-			if (!url1) throw new Error("La foto principal es obligatoria");
+			// Manejo adecuado de la excepción lanzada
+			if (!url1) {
+				console.error("La foto principal es obligatoria");
+				return;
+			}
 
 			// Preparamos los datos asegurando que los números sean números
 			const data = {
@@ -189,6 +193,13 @@
 	function mostrarMensaje(t, type) {
 		msg = { text: t, type };
 		setTimeout(() => msg = { text: "", type: "" }, 3000);
+	}
+
+	function validatePhoto(url1) {
+		if (!url1) {
+			return "La foto principal es obligatoria";
+		}
+		return null;
 	}
 </script>
 

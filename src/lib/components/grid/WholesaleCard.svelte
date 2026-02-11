@@ -4,6 +4,7 @@
 
 	export let product: any;
 	export let index: number = 0;
+	export let showUnitPrice: boolean = false; // Nueva propiedad para manejar el precio a mostrar
 
 	const dispatch = createEventDispatcher();
 
@@ -35,6 +36,10 @@
 			e.preventDefault();
 			dispatch('select', product);
 		}
+	}
+
+	function calculateDiscountedPrice(price: number): number {
+		return price * 0.8; // Aplica un descuento del 20%
 	}
 </script>
 
@@ -75,7 +80,6 @@
 	</div>
 
 	<div class="p-2 flex flex-col flex-1">
-
 		<div class="mb-1.5">
 			<h3 class="font-sans font-medium text-[#222] text-[11px] leading-3 line-clamp-2 h-[24px] mb-0.5 capitalize">
 				{product.descripcion.toLowerCase()}
@@ -84,13 +88,19 @@
 			<div class="flex items-baseline gap-0.5 text-[#222]">
 				<span class="text-[10px] font-bold">Bs.</span>
 				<span class="font-sans font-black text-base leading-none">
-					{Number(product.preciopormayor).toFixed(2)}
+					{showUnitPrice ? calculateDiscountedPrice(Number(product.precioUnidad)).toFixed(2) : Number(product.preciopormayor).toFixed(2)}
 				</span>
 			</div>
+
+			{#if showUnitPrice}
+				<div class="text-[10px] text-red-500 font-medium">
+					20% descuento: Bs. {Number(product.precioUnidad).toFixed(2)}
+				</div>
+			{/if}
 		</div>
 
 		<div class="text-[11px] text-[#222] font-medium font-sans leading-tight">
-			{product.moq || 12} unidades (MOQ)
+			{showUnitPrice ? 'Precio por unidad' : `${product.moq || 12} unidades (MOQ)`}
 		</div>
 
 		<div class="relative h-4 overflow-hidden mt-auto w-full pt-1">
