@@ -134,7 +134,11 @@ onMount(async () => {
 	<meta name="description" content="Descubre los precios por unidad en Ale Importadora. Encuentra productos únicos disponibles solo en tienda física." />
 	<meta property="og:title" content="Ale Importadora | Precios por Unidad" />
 	<meta property="og:description" content="Descubre los precios por unidad en Ale Importadora. Encuentra productos únicos disponibles solo en tienda física." />
-	<meta property="og:image" content="https://importadoraale.app/imagen-predeterminada.jpg" />
+	<meta property="og:image" content="https://importadoraale.app/og-image.jpg" />
+	<meta property="og:image:width" content="1200" />
+	<meta property="og:image:height" content="630" />
+	<meta property="og:title" content="Catálogo de Precios por Unidad" />
+	<meta property="og:description" content="Descubre los mejores precios por unidad en nuestra tienda." />
 	<meta property="og:url" content="https://importadoraale.app/" />
 </svelte:head>
 
@@ -244,7 +248,7 @@ onMount(async () => {
 				<!-- Image -->
 				<div class="w-full bg-gray-50 p-4 flex justify-center items-center">
 					<img
-						src={`${selectedProduct.imagen}&width=400&quality=80&output=webp`}
+						src={`${selectedProduct.imagen}&width=400&quality=80&output=webp&gravity=center`}
 						alt={selectedProduct.descripcion}
 						loading="lazy"
 						class="w-full h-auto max-h-60 object-contain rounded-md"
