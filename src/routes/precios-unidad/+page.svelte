@@ -255,7 +255,7 @@ onMount(async () => {
 						on:error={(event) => {
 							const target = event.currentTarget;
 							if (target instanceof HTMLImageElement) {
-								target.src = '/path/to/fallback-image.webp';
+								target.src = '/static/images/fallback-image.webp';
 							}
 						}}
 					/>

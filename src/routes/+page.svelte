@@ -314,7 +314,7 @@
 							on:error={(event) => {
 								const target = event.target;
 								if (target instanceof HTMLImageElement) {
-									target.src = '/path/to/fallback-image.webp';
+									target.src = '/static/images/fallback-image.webp';
 								}
 							}}
 							class="h-full w-full object-contain mix-blend-multiply { !selectedProduct.disponible ? 'grayscale opacity-50' : '' }"
