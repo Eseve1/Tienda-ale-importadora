@@ -25,6 +25,7 @@
 	let inventory = [];
 	let searchTerm = "";
 	let filterCat = "";
+
 	let msg = { text: "", type: "" };
 	let isDragging = false; // Nuevo estado visual para drag & drop
 
@@ -187,12 +188,11 @@
 		isDragging = false;
 	}
 
-	$: listaFiltrada = (!searchTerm && !filterCat) ?
-		inventory : inventory.filter(p => {
-			const term = searchTerm.toLowerCase().trim();
-			return (!term || (p.descripcion||"").toLowerCase().includes(term) || (p.codigo||"").toLowerCase().includes(term)) &&
-				(!filterCat || p.categoria === filterCat);
-		});
+	$: listaFiltrada = (!searchTerm && !filterCat) ? inventory : inventory.filter(p => {
+		const term = searchTerm.toLowerCase().trim();
+		return (!term || (p.descripcion||"").toLowerCase().includes(term) || (p.codigo||"").toLowerCase().includes(term)) &&
+			(!filterCat || p.categoria === filterCat);
+	});
 </script>
 
 <div class="min-h-screen bg-[#f3f4f6] font-sans text-gray-800 flex flex-col">
@@ -224,10 +224,8 @@
 				</div>
 
 				<div class="bg-gray-100 p-1 rounded-xl flex gap-1">
-					<button on:click={() => viewMode = 'upload'} class="px-6 py-2 rounded-lg text-xs font-black transition-all uppercase tracking-wide {viewMode === 'upload' ?
-						'bg-white shadow-sm text-blue-600 scale-105' : 'text-gray-400 hover:text-gray-600'}">📤 Cargar</button>
-					<button on:click={() => { viewMode = 'search'; resetForm(); }} class="px-6 py-2 rounded-lg text-xs font-black transition-all uppercase tracking-wide {viewMode === 'search' ?
-						'bg-white shadow-sm text-blue-600 scale-105' : 'text-gray-400 hover:text-gray-600'}">🔍 Buscar</button>
+					<button on:click={() => viewMode = 'upload'} class="px-6 py-2 rounded-lg text-xs font-black transition-all uppercase tracking-wide {viewMode === 'upload' ? 'bg-white shadow-sm text-blue-600 scale-105' : 'text-gray-400 hover:text-gray-600'}">📤 Cargar</button>
+					<button on:click={() => { viewMode = 'search'; resetForm(); }} class="px-6 py-2 rounded-lg text-xs font-black transition-all uppercase tracking-wide {viewMode === 'search' ? 'bg-white shadow-sm text-blue-600 scale-105' : 'text-gray-400 hover:text-gray-600'}">🔍 Buscar</button>
 				</div>
 
 				<div class="flex items-center gap-3">
@@ -240,7 +238,7 @@
 		<main class="flex-1 w-full max-w-7xl mx-auto p-4 lg:p-6">
 
 			{#if viewMode === 'upload'}
-				<div class="max-w-2xl mx-auto bg-white rounded-3xl shadow-xl shadow-gray-200/50 border border-white overflow-hidden">
+				<div class="max-w-4xl mx-auto bg-white rounded-3xl shadow-xl shadow-gray-200/50 border border-white overflow-hidden">
 					<div class="p-5 border-b bg-gray-50/50 flex justify-between items-center">
 						<h2 class="font-black text-lg text-gray-800 tracking-tight flex items-center gap-2">
 							{form.id ? '✏️ EDITANDO' : '⚡ CARGA RÁPIDA'}
@@ -250,97 +248,99 @@
 						{/if}
 					</div>
 
-					<div class="p-6 lg:p-8 space-y-6">
-						<div class="grid grid-cols-2 gap-4 h-52">
-							<div
-								class="relative border-2 border-dashed rounded-2xl cursor-pointer flex flex-col items-center justify-center bg-gray-50 group transition-all overflow-hidden
-                                {isDragging ? 'border-blue-500 bg-blue-50 scale-[1.02]' : 'border-gray-300 hover:border-blue-400'}"
-								on:click={() => document.getElementById('f1').click()}
-								on:dragover={handleDragOver}
-								on:dragleave={handleDragLeave}
-								on:drop={(e) => handleDrop(e, 1)}
-								role="button" tabindex="0"
-								on:keydown={(e) => e.key === 'Enter' && document.getElementById('f1').click()}
-							>
-								{#if preview1}
-									<img src={preview1.startsWith('blob:') ? preview1 : `${preview1}&width=400&quality=80&output=webp`} class="w-full h-full object-cover" alt="Principal">
-									<div class="absolute top-2 right-2">
-										<button type="button" class="bg-white/90 backdrop-blur text-red-500 w-8 h-8 rounded-full shadow-lg font-bold z-10 flex items-center justify-center hover:scale-110 transition-transform" on:click|stopPropagation={() => { file1 = null; preview1 = ''; form.imagen = ''; }}>✕</button>
-									</div>
-								{:else}
-									<span class="text-5xl opacity-20 mb-2 group-hover:scale-110 transition-transform">📸</span>
-									<span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center">Arrastra o Click<br>Principal</span>
-								{/if}
-								<input id="f1" type="file" hidden accept="image/*" on:change={(e) => handleFileSelect(e.target.files[0], 1)}>
+					<div class="p-6 lg:p-8 flex flex-col gap-6">
+						<div class="flex flex-col md:flex-row gap-8">
+
+							<div class="w-full md:w-1/3 flex flex-row md:flex-col gap-4">
+								<div
+									class="relative w-full aspect-square border-2 border-dashed rounded-2xl cursor-pointer flex flex-col items-center justify-center bg-gray-50 group transition-all overflow-hidden
+									{isDragging ? 'border-blue-500 bg-blue-50 scale-[1.02]' : 'border-gray-300 hover:border-blue-400'}"
+									on:click={() => document.getElementById('f1').click()}
+									on:dragover={handleDragOver}
+									on:dragleave={handleDragLeave}
+									on:drop={(e) => handleDrop(e, 1)}
+									role="button" tabindex="0"
+									on:keydown={(e) => e.key === 'Enter' && document.getElementById('f1').click()}
+								>
+									{#if preview1}
+										<img src={preview1.startsWith('blob:') ? preview1 : `${preview1}&width=400&quality=80&output=webp`} class="w-full h-full object-contain p-2" alt="Principal">
+										<div class="absolute top-2 right-2">
+											<button type="button" class="bg-white/90 backdrop-blur text-red-500 w-8 h-8 rounded-full shadow-lg font-bold z-10 flex items-center justify-center hover:scale-110 transition-transform" on:click|stopPropagation={() => { file1 = null; preview1 = ''; form.imagen = ''; }}>✕</button>
+										</div>
+									{:else}
+										<span class="text-5xl opacity-20 mb-2 group-hover:scale-110 transition-transform">📸</span>
+										<span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center">Arrastra o Click<br>Principal</span>
+									{/if}
+									<input id="f1" type="file" hidden accept="image/*" on:change={(e) => handleFileSelect(e.target.files[0], 1)}>
+								</div>
+
+								<div
+									class="relative w-full aspect-square border-2 border-dashed rounded-2xl cursor-pointer flex flex-col items-center justify-center bg-gray-50 group transition-all overflow-hidden
+									{isDragging ? 'border-blue-500 bg-blue-50 scale-[1.02]' : 'border-gray-300 hover:border-blue-400'}"
+									on:click={() => document.getElementById('f2').click()}
+									on:dragover={handleDragOver}
+									on:dragleave={handleDragLeave}
+									on:drop={(e) => handleDrop(e, 2)}
+									role="button" tabindex="0"
+									on:keydown={(e) => e.key === 'Enter' && document.getElementById('f2').click()}
+								>
+									{#if preview2}
+										<img src={preview2.startsWith('blob:') ? preview2 : `${preview2}&width=400&quality=80&output=webp`} class="w-full h-full object-contain p-2" alt="Extra">
+										<div class="absolute top-2 right-2">
+											<button type="button" class="bg-white/90 backdrop-blur text-red-500 w-8 h-8 rounded-full shadow-lg font-bold z-10 flex items-center justify-center hover:scale-110 transition-transform" on:click|stopPropagation={() => { file2 = null; preview2 = ''; form.imagen2 = ''; }}>✕</button>
+										</div>
+									{:else}
+										<span class="text-5xl opacity-20 mb-2 group-hover:scale-110 transition-transform">➕</span>
+										<span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center">Arrastra o Click<br>Extra</span>
+									{/if}
+									<input id="f2" type="file" hidden accept="image/*" on:change={(e) => handleFileSelect(e.target.files[0], 2)}>
+								</div>
 							</div>
 
-							<div
-								class="relative border-2 border-dashed rounded-2xl cursor-pointer flex flex-col items-center justify-center bg-gray-50 group transition-all overflow-hidden
-                                {isDragging ? 'border-blue-500 bg-blue-50 scale-[1.02]' : 'border-gray-300 hover:border-blue-400'}"
-								on:click={() => document.getElementById('f2').click()}
-								on:dragover={handleDragOver}
-								on:dragleave={handleDragLeave}
-								on:drop={(e) => handleDrop(e, 2)}
-								role="button" tabindex="0"
-								on:keydown={(e) => e.key === 'Enter' && document.getElementById('f2').click()}
-							>
-								{#if preview2}
-									<img src={preview2.startsWith('blob:') ? preview2 : `${preview2}&width=400&quality=80&output=webp`} class="w-full h-full object-cover" alt="Extra">
-									<div class="absolute top-2 right-2">
-										<button type="button" class="bg-white/90 backdrop-blur text-red-500 w-8 h-8 rounded-full shadow-lg font-bold z-10 flex items-center justify-center hover:scale-110 transition-transform" on:click|stopPropagation={() => { file2 = null; preview2 = ''; form.imagen2 = ''; }}>✕</button>
+							<div class="w-full md:w-2/3 space-y-4">
+								<div>
+									<label for="descripcion" class="text-[10px] font-bold text-gray-400 uppercase ml-2 mb-1 block">Descripción del Producto</label>
+									<input
+										bind:this={nameInputRef}
+										id="descripcion"
+										type="text"
+										bind:value={form.descripcion}
+										class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-blue-500 outline-none font-bold text-lg text-gray-800 transition-all placeholder-gray-300"
+										placeholder="Ej: Mini Licuadora Portátil...">
+								</div>
+
+								<div class="grid grid-cols-3 gap-3">
+									<div class="col-span-1">
+										<label for="categoria" class="text-[10px] font-bold text-gray-400 uppercase ml-2 mb-1 block">Categoría</label>
+										<select id="categoria" bind:value={form.categoria} class="w-full p-2.5 bg-blue-50 border border-blue-100 rounded-xl text-xs font-bold text-blue-800 outline-none focus:bg-white focus:border-blue-300 cursor-pointer">
+											<option value="">Elegir...</option>
+											{#each categorias as c}<option value={c}>{c}</option>{/each}
+										</select>
 									</div>
-								{:else}
-									<span class="text-5xl opacity-20 mb-2 group-hover:scale-110 transition-transform">➕</span>
-									<span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center">Arrastra o Click<br>Extra</span>
-								{/if}
-								<input id="f2" type="file" hidden accept="image/*" on:change={(e) => handleFileSelect(e.target.files[0], 2)}>
+									<div>
+										<label for="codigo" class="text-[10px] font-bold text-gray-400 uppercase ml-2 mb-1 block">Código</label>
+										<input id="codigo" type="text" bind:value={form.codigo} class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl font-mono text-xs font-bold uppercase outline-none focus:border-blue-500 focus:bg-white" placeholder="A-001">
+									</div>
+									<div>
+										<label for="moq" class="text-[10px] font-bold text-gray-400 uppercase ml-2 mb-1 block">Mínimo (MOQ)</label>
+										<input id="moq" type="number" bind:value={form.moq} class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl font-bold text-center outline-none focus:border-blue-500 focus:bg-white">
+									</div>
+								</div>
+
+								<div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 flex gap-4 items-center mt-4">
+									<div class="flex-1 text-center border-r border-gray-200 pr-4">
+										<label for="preciopormayor" class="text-[10px] font-black text-blue-600 uppercase mb-1 block tracking-wider">Precio Mayorista (Bs)</label>
+										<input id="preciopormayor" type="number" step="0.01" bind:value={form.preciopormayor} class="w-full bg-transparent border-none p-0 text-3xl font-black text-blue-600 text-center outline-none focus:scale-110 transition-transform placeholder-blue-200" placeholder="0.00">
+									</div>
+									<div class="w-1/3 text-center pl-2">
+										<label for="precioUnidad" class="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Sugerido</label>
+										<input id="precioUnidad" type="number" step="0.01" bind:value={form.precioUnidad} class="w-full bg-white border border-gray-200 p-2 rounded-xl text-lg font-bold text-gray-500 text-center outline-none focus:ring-2 focus:ring-gray-100">
+									</div>
+								</div>
 							</div>
 						</div>
 
-						<div class="space-y-4">
-							<div>
-								<label for="descripcion" class="text-[10px] font-bold text-gray-400 uppercase ml-2 mb-1 block">Descripción del Producto</label>
-								<input
-									bind:this={nameInputRef}
-									id="descripcion"
-									type="text"
-									bind:value={form.descripcion}
-									class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:border-blue-500 outline-none font-bold text-lg text-gray-800 transition-all placeholder-gray-300"
-									placeholder="Ej: Mini Licuadora Portátil...">
-							</div>
-
-							<div class="grid grid-cols-3 gap-3">
-								<div class="col-span-1">
-									<label for="categoria" class="text-[10px] font-bold text-gray-400 uppercase ml-2 mb-1 block">Categoría</label>
-									<select id="categoria" bind:value={form.categoria} class="w-full p-2.5 bg-blue-50 border border-blue-100 rounded-xl text-xs font-bold text-blue-800 outline-none focus:bg-white focus:border-blue-300 cursor-pointer">
-										<option value="">Elegir...</option>
-										{#each categorias as c}<option value={c}>{c}</option>{/each}
-									</select>
-								</div>
-								<div>
-									<label for="codigo" class="text-[10px] font-bold text-gray-400 uppercase ml-2 mb-1 block">Código</label>
-									<input id="codigo" type="text" bind:value={form.codigo} class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl font-mono text-xs font-bold uppercase outline-none focus:border-blue-500 focus:bg-white" placeholder="A-001">
-								</div>
-								<div>
-									<label for="moq" class="text-[10px] font-bold text-gray-400 uppercase ml-2 mb-1 block">Mínimo (MOQ)</label>
-									<input id="moq" type="number" bind:value={form.moq} class="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl font-bold text-center outline-none focus:border-blue-500 focus:bg-white">
-								</div>
-							</div>
-
-							<div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 flex gap-4 items-center">
-								<div class="flex-1 text-center border-r border-gray-200 pr-4">
-									<label for="preciopormayor" class="text-[10px] font-black text-blue-600 uppercase mb-1 block tracking-wider">Precio Mayorista (Bs)</label>
-									<input id="preciopormayor" type="number" step="0.01" bind:value={form.preciopormayor} class="w-full bg-transparent border-none p-0 text-3xl font-black text-blue-600 text-center outline-none focus:scale-110 transition-transform placeholder-blue-200" placeholder="0.00">
-								</div>
-								<div class="w-1/3 text-center pl-2">
-									<label for="precioUnidad" class="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Sugerido</label>
-									<input id="precioUnidad" type="number" step="0.01" bind:value={form.precioUnidad} class="w-full bg-white border border-gray-200 p-2 rounded-xl text-lg font-bold text-gray-500 text-center outline-none focus:ring-2 focus:ring-gray-100">
-								</div>
-							</div>
-						</div>
-
-						<button on:click={guardarProducto} disabled={loading} class="w-full bg-black text-white font-black py-5 rounded-2xl text-lg shadow-xl shadow-gray-400/20
-							hover:scale-[1.01] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 group">
+						<button on:click={guardarProducto} disabled={loading} class="w-full mt-2 bg-black text-white font-black py-5 rounded-2xl text-lg shadow-xl shadow-gray-400/20 hover:scale-[1.01] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 group">
 							{loading ? '⏳ GUARDANDO...' : (form.id ? '💾 ACTUALIZAR PRODUCTO' : '🚀 GUARDAR Y SEGUIR')}
 						</button>
 					</div>
