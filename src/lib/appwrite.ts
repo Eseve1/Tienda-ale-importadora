@@ -6,7 +6,7 @@ import { Client, Databases, Storage, Account } from 'appwrite';
 const client = new Client();
 
 client
-	.setEndpoint('https://api.importadoraale.app/v1') // ✅ TU DOMINIO SEGURO
+	.setEndpoint('https://app.grupo59.com/v1') // ✅ TU DOMINIO SEGURO
 	.setProject('6978d1bc000bad7c5671');              // ✅ TU ID NUEVO
 
 export const databases = new Databases(client);

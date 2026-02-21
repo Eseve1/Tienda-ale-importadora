@@ -4,7 +4,7 @@
 	import { Client, Databases, Storage, ID, Query, Account } from 'appwrite';
 
 	// --- CONFIGURACIÓN ---
-	const ENDPOINT = "https://api.importadoraale.app/v1";
+	const ENDPOINT = "https://app.grupo59.com/v1";
 	const PROJECT_ID = "6978d1bc000bad7c5671";
 	const DATABASE_ID = "6978d1f3000ea0b56ebc";
 	const COLLECTION_ID = "catalogo_ale";

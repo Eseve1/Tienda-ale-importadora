@@ -9,7 +9,7 @@
 	import Footer from '$lib/components/footer/Footer.svelte';
 	import { cart } from '$lib/stores/cart';
 
-	const ENDPOINT = "https://api.importadoraale.app/v1";
+	const ENDPOINT = "https://app.grupo59.com/v1";
 	const PROJECT_ID = "6978d1bc000bad7c5671";
 	const DB_ID = "6978d1f3000ea0b56ebc";
 	const COLLECTION_ID = "catalogo_ale";
@@ -31,6 +31,12 @@
 	let hasMore = true;
 	let debounceTimer: any;
 	const categorias = ["Todo", "Belleza y salud", "Herramientas", "Hogar y cocina", "Infantil", "Moda y equipaje", "Oficina y escolar", "Tecnología"];
+
+	// ✅ FIX: Reemplaza URLs viejas al vuelo
+	function fixUrl(url: string): string {
+		if (!url) return '';
+		return url.replace('https://api.importadoraale.app/v1', 'https://app.grupo59.com/v1');
+	}
 
 	function shuffleArray(array: any[]) {
 		for (let i = array.length - 1; i > 0; i--) {
@@ -108,7 +114,7 @@
 
 	function abrirModal(producto: any) {
 		selectedProduct = producto;
-		activeImage = producto.imagen;
+		activeImage = fixUrl(producto.imagen);
 		modalOpen = true;
 		if (typeof document !== 'undefined') document.body.style.overflow = 'hidden';
 	}
@@ -122,7 +128,7 @@
 
 	function addAndExit() {
 		if (selectedProduct) {
-			const priceType = selectedProduct.moq > 1 ? "mayorista" : "unidad"; // Determinar el tipo de precio
+			const priceType = selectedProduct.moq > 1 ? "mayorista" : "unidad";
 			cart.add(selectedProduct, selectedProduct.moq || 12, priceType);
 			cerrarModal();
 		}
@@ -199,24 +205,21 @@
 
 	<div class="max-w-7xl mx-auto w-full px-4 mt-8">
 		<div class="bg-[#f7421e] rounded-[2rem] p-8 md:p-12 text-white relative overflow-hidden shadow-xl shadow-orange-200 border-2 border-white/10">
-			<div class="relative z-10 flex flex-col items-start max-w-2xl">
-				<span class="bg-black/20 text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest mb-3 border border-white/20">Mayorista Oficial</span>
-				<h1 class="text-3xl md:text-5xl font-black italic uppercase tracking-tighter leading-none mb-3">
-					Importación Directa
-				</h1>
-				<p class="text-xs md:text-sm font-bold opacity-90 leading-relaxed max-w-md">
-					Precios especiales para tiendas y revendedores. Stock real en Santa Cruz.
-				</p>
+			<div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px); background-size: 30px 30px;"></div>
+			<div class="relative z-10">
+				<span class="inline-block bg-white/20 backdrop-blur text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full mb-4">Mayorista Oficial</span>
+				<h1 class="text-3xl md:text-6xl font-black leading-none mb-3 tracking-tight font-poppins italic">IMPORTACIÓN DIRECTA</h1>
+				<p class="text-white/80 text-sm md:text-base max-w-md">Precios especiales para tiendas y revendedores. Stock real en Santa Cruz.</p>
 			</div>
 		</div>
 	</div>
 
-	<nav class="bg-white/95 backdrop-blur-md border-b border-gray-100 sticky top-[75px] z-[90] overflow-x-auto no-scrollbar py-3 mt-4">
-		<div class="max-w-7xl mx-auto flex px-4 gap-2">
+	<nav class="max-w-7xl mx-auto w-full px-4 mt-6 no-scrollbar" style="overflow-x: auto;">
+		<div class="flex gap-2 pb-1" style="width: max-content;">
 			{#each categorias as cat}
 				<button
-					on:click={() => { searchTerm = ""; cargarProductos(cat); }}
-					class="whitespace-nowrap px-5 py-2 rounded-full text-[11px] font-bold border transition-all {catActual === cat ? 'bg-[#f7421e] text-white border-[#f7421e] shadow-md shadow-orange-200' : 'bg-white text-gray-500 border-gray-100 hover:border-[#f7421e] hover:text-[#f7421e]'}"
+					on:click={() => cargarProductos(cat)}
+					class="px-4 py-2 rounded-full text-xs font-bold transition-all whitespace-nowrap {catActual === cat ? 'bg-[#f7421e] text-white shadow-lg shadow-orange-100' : 'bg-white text-gray-500 border border-gray-100 hover:border-[#f7421e] hover:text-[#f7421e]'}"
 				>
 					{cat}
 				</button>
@@ -303,10 +306,10 @@
 
 					<div class="w-full h-56 md:h-96 flex items-center justify-center mb-2 md:mb-4">
 						<img
-							src="{activeImage || selectedProduct.imagen}&width=800&quality=85&output=webp"
+							src="{activeImage || fixUrl(selectedProduct.imagen)}&width=800&quality=85&output=webp"
 							srcset="
-							  {activeImage || selectedProduct.imagen}&width=400&quality=85&output=webp 400w,
-							  {activeImage || selectedProduct.imagen}&width=800&quality=85&output=webp 800w
+							  {activeImage || fixUrl(selectedProduct.imagen)}&width=400&quality=85&output=webp 400w,
+							  {activeImage || fixUrl(selectedProduct.imagen)}&width=800&quality=85&output=webp 800w
 							"
 							sizes="(max-width: 768px) 400px, 800px"
 							alt={selectedProduct.descripcion}
@@ -314,7 +317,7 @@
 							on:error={(event) => {
 								const target = event.target;
 								if (target instanceof HTMLImageElement) {
-									target.src = '/static/images/fallback-image.webp';
+									target.src = '/images/fallback-image.webp';
 								}
 							}}
 							class="h-full w-full object-contain mix-blend-multiply { !selectedProduct.disponible ? 'grayscale opacity-50' : '' }"
@@ -324,16 +327,16 @@
 					{#if selectedProduct.imagen2}
 						<div class="flex gap-2">
 							<button
-								on:click={() => activeImage = selectedProduct.imagen}
-								class="w-12 h-12 md:w-16 md:h-16 border-2 rounded-lg overflow-hidden transition-all {activeImage === selectedProduct.imagen ? 'border-[#f7421e]' : 'border-transparent hover:border-gray-300'}"
+								on:click={() => activeImage = fixUrl(selectedProduct.imagen)}
+								class="w-12 h-12 md:w-16 md:h-16 border-2 rounded-lg overflow-hidden transition-all {activeImage === fixUrl(selectedProduct.imagen) ? 'border-[#f7421e]' : 'border-transparent hover:border-gray-300'}"
 							>
-								<img src="{selectedProduct.imagen}&width=100&quality=60&output=webp" class="w-full h-full object-cover" alt="Vista 1" />
+								<img src="{fixUrl(selectedProduct.imagen)}&width=100&quality=60&output=webp" class="w-full h-full object-cover" alt="Vista 1" />
 							</button>
 							<button
-								on:click={() => activeImage = selectedProduct.imagen2}
-								class="w-12 h-12 md:w-16 md:h-16 border-2 rounded-lg overflow-hidden transition-all {activeImage === selectedProduct.imagen2 ? 'border-[#f7421e]' : 'border-transparent hover:border-gray-300'}"
+								on:click={() => activeImage = fixUrl(selectedProduct.imagen2)}
+								class="w-12 h-12 md:w-16 md:h-16 border-2 rounded-lg overflow-hidden transition-all {activeImage === fixUrl(selectedProduct.imagen2) ? 'border-[#f7421e]' : 'border-transparent hover:border-gray-300'}"
 							>
-								<img src="{selectedProduct.imagen2}&width=100&quality=60&output=webp" class="w-full h-full object-cover" alt="Vista 2" />
+								<img src="{fixUrl(selectedProduct.imagen2)}&width=100&quality=60&output=webp" class="w-full h-full object-cover" alt="Vista 2" />
 							</button>
 						</div>
 					{/if}

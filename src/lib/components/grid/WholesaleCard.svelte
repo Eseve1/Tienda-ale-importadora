@@ -1,20 +1,26 @@
-﻿<script lang="ts">
+<script lang="ts">
 	import { createEventDispatcher, onMount, onDestroy } from 'svelte';
 	import { fly } from 'svelte/transition';
 
 	export let product: any;
 	export let index: number = 0;
-	export let showUnitPrice: boolean = false; // Nueva propiedad para manejar el precio a mostrar
+	export let showUnitPrice: boolean = false;
 
 	const dispatch = createEventDispatcher();
 
+	// ✅ FIX: Reemplaza URLs viejas al vuelo
+	function fixUrl(url: string): string {
+		if (!url) return '';
+		return url.replace('https://api.importadoraale.app/v1', 'https://app.grupo59.com/v1');
+	}
+
 	const salesTags = [
-		"📦 +1 docena vendida hoy", "🔥 +5 docenas vendidas hoy", "🚀 +2 docenas despachadas ",
-		"🇧🇴 Envíos a los 9 departamentos", "🚚 Saliendo carga a La Paz", "🏔️ Alta rotación en El Alto",
-		"🍇 Pedido frecuente en Tarija", "🌴 Envío listo para Trinidad - Beni", "🌰 Despacho a Riberalta",
-		"🚤 Ruta activa a Rurrenabaque", "🌞 Envíos a Cobija - Pando", "🦕 Saliendo pedido a Sucre",
-		"💎 Top ventas en Cochabamba", "⛏️ Envíos diarios a Potosí y Oruro", "✅ Stock verificado por Ale",
-		"⚡ Salida diaria de mercadería"
+		"🔥 +1 docena vendida hoy", "🔥 +5 docenas vendidas hoy", "🔥 +2 docenas despachadas ",
+		"🌍 Envíos a los 9 departamentos", "🚚 Saliendo carga a La Paz", "⭐ Alta rotación en El Alto",
+		"📦 Pedido frecuente en Tarija", "🚚 Envío listo para Trinidad - Beni", "📦 Despacho a Riberalta",
+		"🚚 Ruta activa a Rurrenabaque", "📦 Envíos a Cobija - Pando", "📦 Saliendo pedido a Sucre",
+		"🔥 Top ventas en Cochabamba", "📦 Envíos diarios a Potosí y Oruro", "✅ Stock verificado por Ale",
+		"✅ Salida diaria de mercadería"
 	];
 	let i = 0;
 	let interval: any;
@@ -39,7 +45,7 @@
 	}
 
 	function calculateDiscountedPrice(price: number): number {
-		return price * 0.8; // Aplica un descuento del 20%
+		return price * 0.8;
 	}
 </script>
 
@@ -58,7 +64,7 @@
 
 	<div class="aspect-square w-full relative bg-[#f8f8f8]">
 		<img
-			src="{product.imagen}&width=400&height=400&quality=75&output=webp"
+			src="{fixUrl(product.imagen)}&width=400&height=400&quality=75&output=webp"
 			alt={product.descripcion}
 			loading={index < 4 ? "eager" : "lazy"}
 			fetchpriority={index < 4 ? "high" : "auto"}
@@ -69,7 +75,7 @@
 
 		{#if product.imagen2}
 			<img
-				src="{product.imagen2}&width=400&height=400&quality=75&output=webp"
+				src="{fixUrl(product.imagen2)}&width=400&height=400&quality=75&output=webp"
 				alt="{product.descripcion} vista 2"
 				loading="lazy"
 				width="400"

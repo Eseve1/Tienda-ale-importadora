@@ -5,7 +5,7 @@ import WholesaleCard from '$lib/components/grid/WholesaleCard.svelte';
 import AnnouncementBar from '$lib/components/header/AnnouncementBar.svelte';
 import Footer from '$lib/components/footer/Footer.svelte';
 
-const ENDPOINT = "https://api.importadoraale.app/v1";
+const ENDPOINT = "https://app.grupo59.com/v1";
 const PROJECT_ID = "6978d1bc000bad7c5671";
 const DB_ID = "6978d1f3000ea0b56ebc";
 const COLLECTION_ID = "catalogo_ale";
@@ -255,7 +255,7 @@ onMount(async () => {
 						on:error={(event) => {
 							const target = event.currentTarget;
 							if (target instanceof HTMLImageElement) {
-								target.src = '/static/images/fallback-image.webp';
+								target.src = '/images/fallback-image.webp';
 							}
 						}}
 					/>
