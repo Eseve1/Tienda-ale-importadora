@@ -6,6 +6,12 @@
 
 	const PHONE = '59161333335';
 
+	// ✅ FIX: Reemplaza URLs viejas al vuelo
+	function fixUrl(url: string): string {
+		if (!url) return '';
+		return url.replace('https://api.importadoraale.app/v1', 'https://app.grupo59.com/v1');
+	}
+
 	function enviarWhatsApp() {
 		if (!$cart.items.length) return;
 		let mensaje = "Hola Ale Importadora. Mi pedido detallado:\n\n";
@@ -34,7 +40,6 @@
 		return precio - (precio * descuento) / 100;
 	}
 
-	// Estado para el producto seleccionado en los modales
 	export const selectedProduct = writable(null);
 </script>
 
@@ -92,7 +97,7 @@
 						</button>
 
 						<div class="h-20 w-20 bg-gray-50 rounded-xl flex-shrink-0">
-							<img src="{item.product.imagen}&width=150&quality=60" alt={item.product.descripcion} class="h-full w-full object-contain mix-blend-multiply" />
+							<img src="{fixUrl(item.product.imagen)}&width=150&quality=60" alt={item.product.descripcion} class="h-full w-full object-contain mix-blend-multiply" />
 						</div>
 
 						<div class="flex-1 flex flex-col justify-center pr-6">
@@ -153,88 +158,8 @@
 	</div>
 {/if}
 
-<!-- Modal de precios por unidad y por mayor unificados -->
-{#if $selectedProduct}
-<div class="modal-precio">
-	<div class="modal-header">
-		<h2 class="text-lg font-bold text-[#222] font-poppins">
-			{#if $selectedProduct.moq === 1}
-				Precio por Unidad
-			{:else}
-				Precio por Mayor
-			{/if}
-		</h2>
-	</div>
-	<div class="modal-body">
-		<img src="{$selectedProduct.imagen}" alt="{$selectedProduct.descripcion}" class="modal-image" />
-		<h3 class="text-md font-semibold text-[#222] font-poppins">{$selectedProduct.descripcion}</h3>
-		<p class="text-sm text-gray-500 font-poppins">Ref: {$selectedProduct.codigo}</p>
-		{#if $selectedProduct.moq === 1}
-			<p class="text-lg font-bold text-[#222] font-poppins">Precio: Bs. {calcularDescuento($selectedProduct.precioUnidad, 20).toFixed(2)}</p>
-		{:else}
-			<p class="text-lg font-bold text-[#222] font-poppins">Precio Total: Bs. {($selectedProduct.preciopormayor * $selectedProduct.moq).toFixed(2)}</p>
-		{/if}
-	</div>
-	<div class="modal-footer">
-		<button class="btn-agregar-carrito">
-			{#if $selectedProduct.moq === 1}
-				Añadir al carrito
-			{:else}
-				Añadir al pedido
-			{/if}
-		</button>
-	</div>
-</div>
-{/if}
-
 <style>
-	.modal-precio {
-		background-color: #fff;
-		border-radius: 12px;
-		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-		padding: 16px;
-		max-width: 400px;
-		margin: auto;
-	}
-
-	.modal-header {
-		text-align: center;
-		margin-bottom: 16px;
-	}
-
-	.modal-image {
-		width: 100%;
-		height: auto;
-		border-radius: 8px;
-		margin-bottom: 16px;
-	}
-
-	.modal-body {
-		text-align: center;
-	}
-
-	.modal-footer {
-		margin-top: 16px;
-		display: flex;
-		justify-content: center;
-	}
-
-	.btn-agregar-carrito {
-		background-color: #00C853;
-		color: #fff;
-		padding: 12px 24px;
-		border-radius: 8px;
-		font-weight: bold;
-		text-transform: uppercase;
-		font-family: 'Poppins', sans-serif;
-		transition: background-color 0.3s;
-	}
-
-	.btn-agregar-carrito:hover {
-		background-color: #00a844;
-	}
-
-	.font-poppins {
-		font-family: 'Poppins', sans-serif;
-	}
+    .font-poppins {
+        font-family: 'Poppins', sans-serif;
+    }
 </style>
