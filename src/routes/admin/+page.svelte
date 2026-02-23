@@ -35,6 +35,12 @@
 
 	const categorias = ["Belleza y salud", "Herramientas", "Hogar y cocina", "Infantil", "Moda y equipaje", "Oficina y escolar", "Tecnología"];
 
+	// --- FIX URLs con dominio incorrecto ---
+	function fixUrl(url) {
+		if (!url) return '';
+		return url.replace('https://api.importadoraale.app/v1', 'https://app.grupo59.com/v1');
+	}
+
 	// --- INICIO ---
 	onMount(async () => {
 		client = new Client().setEndpoint(ENDPOINT).setProject(PROJECT_ID);
@@ -145,8 +151,8 @@
 
 	function editar(item) {
 		form = { ...item, id: item.$id };
-		preview1 = item.imagen;
-		preview2 = item.imagen2;
+		preview1 = fixUrl(item.imagen);
+		preview2 = fixUrl(item.imagen2);
 		viewMode = 'upload';
 	}
 
@@ -263,7 +269,7 @@
 									on:keydown={(e) => e.key === 'Enter' && document.getElementById('f1').click()}
 								>
 									{#if preview1}
-										<img src={preview1.startsWith('blob:') ? preview1 : `${preview1}&width=400&quality=80&output=webp`} class="w-full h-full object-contain p-2" alt="Principal">
+										<img src={preview1.startsWith('blob:') ? preview1 : `${fixUrl(preview1)}&width=400&quality=80&output=webp`} class="w-full h-full object-contain p-2" alt="Principal">
 										<div class="absolute top-2 right-2">
 											<button type="button" class="bg-white/90 backdrop-blur text-red-500 w-8 h-8 rounded-full shadow-lg font-bold z-10 flex items-center justify-center hover:scale-110 transition-transform" on:click|stopPropagation={() => { file1 = null; preview1 = ''; form.imagen = ''; }}>✕</button>
 										</div>
@@ -285,7 +291,7 @@
 									on:keydown={(e) => e.key === 'Enter' && document.getElementById('f2').click()}
 								>
 									{#if preview2}
-										<img src={preview2.startsWith('blob:') ? preview2 : `${preview2}&width=400&quality=80&output=webp`} class="w-full h-full object-contain p-2" alt="Extra">
+										<img src={preview2.startsWith('blob:') ? preview2 : `${fixUrl(preview2)}&width=400&quality=80&output=webp`} class="w-full h-full object-contain p-2" alt="Extra">
 										<div class="absolute top-2 right-2">
 											<button type="button" class="bg-white/90 backdrop-blur text-red-500 w-8 h-8 rounded-full shadow-lg font-bold z-10 flex items-center justify-center hover:scale-110 transition-transform" on:click|stopPropagation={() => { file2 = null; preview2 = ''; form.imagen2 = ''; }}>✕</button>
 										</div>
@@ -371,7 +377,7 @@
 
 									<div class="h-48 w-full bg-gray-50 relative p-4 flex items-center justify-center overflow-hidden">
 										{#if item.imagen}
-											<img src="{item.imagen}&width=400&height=400&quality=80&output=webp"
+											<img src="{fixUrl(item.imagen)}&width=400&height=400&quality=80&output=webp"
 													 alt="img" loading="lazy"
 													 class="w-full h-full object-contain mix-blend-multiply transition-transform duration-500 group-hover:scale-110 {item.disponible ? '' : 'grayscale opacity-60'}">
 										{:else}
