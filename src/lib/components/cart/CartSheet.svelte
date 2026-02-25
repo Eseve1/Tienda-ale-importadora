@@ -6,7 +6,6 @@
 
 	const PHONE = '59161333335';
 
-	// ✅ FIX: Reemplaza URLs viejas al vuelo
 	function fixUrl(url: string): string {
 		if (!url) return '';
 		return url.replace('https://api.importadoraale.app/v1', 'https://app.grupo59.com/v1');
@@ -16,10 +15,16 @@
 		if (!$cart.items.length) return;
 		let mensaje = "Hola Ale Importadora. Mi pedido detallado:\n\n";
 		$cart.items.forEach((item: any) => {
+			// Precio correcto según tipo: unidad con -20% o mayorista
+			const precioUnitario = item.priceType === 'unidad'
+				? (Number(item.product.precioUnidad) * 0.8)
+				: Number(item.product.preciopormayor);
+
 			mensaje += `Producto: ${item.product.descripcion}\n`;
 			mensaje += `Ref: ${item.product.codigo}\n`;
-			mensaje += `Cant: ${item.quantity} (MOQ: ${item.product.moq || 12})\n`;
-			mensaje += `Subtotal: Bs. ${(item.product.preciopormayor * item.quantity).toFixed(2)}\n\n`;
+			mensaje += `Cant: ${item.quantity}\n`;
+			mensaje += `Precio c/u: Bs. ${precioUnitario.toFixed(2)}\n`;
+			mensaje += `Subtotal: Bs. ${(precioUnitario * item.quantity).toFixed(2)}\n\n`;
 		});
 		mensaje += `TOTAL DEL PEDIDO: Bs. ${$cart.total.toFixed(2)}`;
 		if (browser) window.open(`https://wa.me/${PHONE}?text=${encodeURIComponent(mensaje)}`, '_blank');
@@ -34,10 +39,6 @@
 
 	function handleKeydown(e: KeyboardEvent) {
 		if (e.key === 'Escape') cart.setIsOpen(false);
-	}
-
-	function calcularDescuento(precio: number, descuento: number): number {
-		return precio - (precio * descuento) / 100;
 	}
 
 	export const selectedProduct = writable(null);
@@ -97,7 +98,7 @@
 						</button>
 
 						<div class="h-20 w-20 bg-gray-50 rounded-xl flex-shrink-0">
-							<img src="{fixUrl(item.product.imagen)}&width=150&quality=60" alt={item.product.descripcion} class="h-full w-full object-contain mix-blend-multiply" />
+							<img src="{fixUrl(item.product.imagen)}&width=150&height=150&quality=60&output=webp" alt={item.product.descripcion} class="h-full w-full object-contain mix-blend-multiply" />
 						</div>
 
 						<div class="flex-1 flex flex-col justify-center pr-6">

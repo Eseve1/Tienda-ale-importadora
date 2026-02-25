@@ -139,13 +139,27 @@
 			<div class="flex justify-center py-24 text-gray-300 font-bold uppercase tracking-widest text-xs animate-pulse">Cargando...</div>
 		{:else}
 			<div class="grid grid-cols-2 md:grid-cols-5 gap-3 lg:gap-5">
-				{#each productos as product (product.$id)}
-					<RetailCard {product} on:showLocations={(e) => abrirModal(e.detail)} />
+				{#each productos as product, i (product.$id)}
+					<RetailCard {product} index={i} on:showLocations={(e) => abrirModal(e.detail)} />
 				{/each}
 			</div>
+
+			<!-- BOTÓN CARGAR MÁS -->
+			{#if hasMore && !loading}
+				<div class="flex justify-center mt-10">
+					<button
+						on:click={() => cargarProductos(catActual, false, true)}
+						disabled={loadingMore}
+						class="px-8 py-3 bg-white border-2 border-[#FF6A00] text-[#FF6A00] font-bold rounded-full text-sm hover:bg-[#FF6A00] hover:text-white transition-all active:scale-95 disabled:opacity-50"
+					>
+						{loadingMore ? 'Cargando...' : 'Cargar más productos'}
+					</button>
+				</div>
+			{/if}
 		{/if}
 	</main>
 
+	<!-- MODAL -->
 	{#if modalOpen && selectedProduct}
 		<div
 			role="button"
@@ -168,12 +182,13 @@
 					aria-label="Cerrar modal"
 				>✕</button>
 
+				<!-- Foto del modal corregida con fixUrl completo -->
 				<div class="w-full bg-[#f8f8f8] p-6 flex justify-center items-center relative border-b border-gray-100">
 					<div class="absolute top-4 left-4 z-10 bg-[#B12704] text-white text-[12px] font-black px-2 py-1 rounded shadow-sm">-20% DTO</div>
 					<img
-						src="{fixUrl(selectedProduct.imagen)}&width=400&quality=80&output=webp"
+						src="{fixUrl(selectedProduct.imagen)}&width=500&height=500&quality=85&output=webp"
 						alt={selectedProduct.descripcion}
-						class="w-full h-auto max-h-56 object-contain mix-blend-multiply"
+						class="w-full h-auto max-h-64 object-contain mix-blend-multiply"
 					/>
 				</div>
 

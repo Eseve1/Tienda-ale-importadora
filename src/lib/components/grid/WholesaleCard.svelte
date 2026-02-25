@@ -27,26 +27,19 @@
 		cart.add(product, quantity, priceType);
 	}
 
-	// LÓGICA DE PRECIOS BASE (Limpia, sin cálculos raros)
 	$: rawPrice = showUnitPrice ? (Number(product.precioUnidad) * 0.8) : (Number(product.preciopormayor) * (product.moq || 12));
 	$: formattedPrice = rawPrice.toFixed(2);
 	$: [intPart, decPart] = formattedPrice.split('.');
 </script>
 
 <div
-	class="group bg-white flex flex-col cursor-pointer font-sans h-full p-2 border border-transparent hover:border-[#FF6A00] hover:shadow-lg rounded-xl transition-all duration-200 { !product.disponible ? 'opacity-60' : '' }"
+	class="group bg-white flex flex-col cursor-pointer font-sans h-full border border-transparent hover:border-[#FF6A00] hover:shadow-lg rounded-xl transition-all duration-200 overflow-hidden { !product.disponible ? 'opacity-60' : '' }"
 	on:click={() => dispatch('select', product)}
 	on:keydown={handleKeydown}
 	role="button"
 	tabindex="0"
 >
-	<div class="aspect-square w-full relative bg-[#F8F8F8] rounded-md overflow-hidden">
-		{#if product.disponible}
-			<div class="absolute top-2 left-2 z-10 bg-[#FFF0E5] text-[#FF6A00] text-[9px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 border border-[#FF6A00]/20">
-				<svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-				Envío Inmediato
-			</div>
-		{/if}
+	<div class="aspect-square w-full relative bg-[#F8F8F8] overflow-hidden">
 
 		{#if !product.disponible}
 			<div class="absolute top-0 right-0 z-20 bg-[#B12704] text-white text-[11px] font-bold px-2 py-1 shadow-sm">
@@ -55,22 +48,21 @@
 		{/if}
 
 		<img
-			src="{fixUrl(product.imagen)}&width=400&height=400&quality=75&output=webp"
+			src="{fixUrl(product.imagen)}&width=600&height=600&quality=85&output=webp"
 			alt={product.descripcion}
 			loading={index < 4 ? "eager" : "lazy"}
 			fetchpriority={index < 4 ? "high" : "auto"}
-			class="absolute inset-0 w-full h-full object-contain mix-blend-multiply transition-transform duration-500 hover:scale-105 { !product.disponible ? 'grayscale' : '' }"
+			class="absolute inset-0 w-full h-full object-contain mix-blend-multiply transition-transform duration-500 group-hover:scale-105 { !product.disponible ? 'grayscale' : '' }"
 		/>
 	</div>
 
-	<div class="flex flex-col flex-1 pt-2">
+	<div class="flex flex-col flex-1 p-2.5">
 
 		<h3 class="font-sans text-[#0F1111] text-[13px] md:text-[14px] leading-[18px] line-clamp-2 h-[36px] group-hover:text-[#FF6A00] capitalize transition-colors">
 			{product.descripcion.toLowerCase()}
 		</h3>
 
 		<div class="mt-1 flex flex-col mb-auto">
-
 			<div class="flex items-end gap-1.5 text-[#0F1111] mb-0.5">
 				<div class="flex items-start">
 					<span class="text-[11px] leading-tight pt-[3px] mr-[1px] font-bold">Bs.</span>
@@ -89,14 +81,14 @@
 			{#if product.disponible}
 				<button
 					on:click={addToCart}
-					class="w-full bg-[#FF6A00] hover:bg-[#E55F00] text-white font-bold text-[13px] py-2 rounded-full shadow-md shadow-orange-500/20 transition-all active:scale-95 flex justify-center items-center gap-1"
+					class="w-full bg-[#FF6A00] hover:bg-[#E55F00] text-white font-bold text-[13px] py-2 rounded-lg transition-all active:scale-95 flex justify-center items-center gap-2"
 				>
 					Agregar
 				</button>
 			{:else}
 				<button
 					disabled
-					class="w-full bg-[#F7F8F8] text-[#565959] font-medium text-[13px] py-2 rounded-full border border-[#D5D9D9] cursor-not-allowed"
+					class="w-full bg-[#F7F8F8] text-[#565959] font-medium text-[13px] py-2 rounded-lg border border-[#D5D9D9] cursor-not-allowed"
 				>
 					Agotado
 				</button>

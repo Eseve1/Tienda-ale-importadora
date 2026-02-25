@@ -388,15 +388,18 @@
 											{item.codigo || 'SN'}
 										</div>
 
-										<div class="absolute bottom-3 right-3 bg-black text-white px-3 py-1 rounded-full text-sm font-black shadow-lg">
-											Bs {item.preciopormayor}
-										</div>
 									</div>
 
 									<div class="p-4 flex-1 flex flex-col justify-between bg-white relative">
-										<div>
-											<h3 class="font-bold text-gray-800 leading-snug line-clamp-2 mb-1 h-10" title={item.descripcion}>{item.descripcion}</h3>
-											<p class="text-[10px] text-gray-400 uppercase font-bold tracking-wider">{item.categoria}</p>
+										<div class="flex items-start justify-between gap-2">
+											<div class="flex-1 min-w-0">
+												<h3 class="font-bold text-gray-800 leading-snug line-clamp-2 mb-1" title={item.descripcion}>{item.descripcion}</h3>
+												<p class="text-[10px] text-gray-400 uppercase font-bold tracking-wider">{item.categoria}</p>
+											</div>
+											<div class="bg-black text-white px-2.5 py-1.5 rounded-xl flex flex-col items-end leading-tight shrink-0">
+												<span class="text-sm font-black">Bs {(item.preciopormayor * (item.moq || 12)).toFixed(2)}</span>
+												<span class="text-[9px] font-bold opacity-60">x{item.moq || 12} · Bs {item.preciopormayor} c/u</span>
+											</div>
 										</div>
 
 										<div class="flex items-center justify-between pt-3 mt-2 border-t border-gray-50">
