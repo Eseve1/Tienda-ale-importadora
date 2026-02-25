@@ -16,6 +16,7 @@
 
 	const client = new Client().setEndpoint(ENDPOINT).setProject(PROJECT_ID);
 	const db = new Databases(client);
+
 	let productos: any[] = [];
 	let loading = true;
 	let loadingMore = false;
@@ -30,9 +31,9 @@
 	let offset = 0;
 	let hasMore = true;
 	let debounceTimer: any;
+
 	const categorias = ["Todo", "Belleza y salud", "Herramientas", "Hogar y cocina", "Infantil", "Moda y equipaje", "Oficina y escolar", "Tecnología"];
 
-	// ✅ FIX: Reemplaza URLs viejas al vuelo
 	function fixUrl(url: string): string {
 		if (!url) return '';
 		return url.replace('https://api.importadoraale.app/v1', 'https://app.grupo59.com/v1');
@@ -342,42 +343,43 @@
 					{/if}
 				</div>
 
-				<div class="w-full md:w-1/2 p-3 md:p-12 flex flex-col overflow-y-auto">
+				<div class="w-full md:w-1/2 p-4 md:p-12 flex flex-col overflow-y-auto">
 					<span class="text-gray-400 font-bold text-[10px] uppercase tracking-wider mb-0.5 block">Ref: {selectedProduct.codigo}</span>
 
-					<h2 class="text-base md:text-2xl font-black text-[#222] leading-tight mb-2 capitalize font-poppins">{selectedProduct.descripcion.toLowerCase()}</h2>
+					<h2 class="text-lg md:text-2xl font-black text-[#222] leading-tight mb-3 capitalize font-poppins">{selectedProduct.descripcion.toLowerCase()}</h2>
 
-					<div class="bg-[#fff0ed] p-2.5 md:p-6 rounded-2xl mb-2 md:mb-6 border-2 border-[#f7421e]/10 flex flex-col justify-center relative">
+					<div class="bg-white p-1 rounded-2xl mb-2 md:mb-6 flex flex-col justify-center relative">
 
 						{#if selectedProduct.precioUnidad && selectedProduct.precioUnidad > selectedProduct.preciopormayor}
-							<div class="flex flex-wrap items-center gap-2 mb-0.5">
-								<span class="text-gray-400 text-[10px] font-bold line-through decoration-red-400/50">
+							<div class="flex flex-wrap items-center gap-2 mb-1">
+								<span class="text-gray-400 text-[11px] font-bold line-through decoration-red-400/50">
 									Precio Tienda: Bs. {Number(selectedProduct.precioUnidad).toFixed(2)}
 								</span>
-								<span class="bg-[#f7421e] text-white text-[9px] font-black px-2 py-0.5 rounded shadow-sm">
+								<span class="bg-red-100 text-red-600 text-[9px] font-black px-2 py-0.5 rounded shadow-sm">
 									-{Math.round(((selectedProduct.precioUnidad - selectedProduct.preciopormayor) / selectedProduct.precioUnidad) * 100)}%
 								</span>
 							</div>
 						{/if}
 
-						<div class="flex items-baseline flex-wrap gap-x-1 my-0.5">
-							<span class="text-xl font-bold text-[#222]">Bs.</span>
-							<span class="text-3xl md:text-6xl font-black text-[#222] tracking-tighter">
-								{Number(selectedProduct.preciopormayor).toFixed(2)}
+						<div class="flex items-baseline flex-wrap gap-x-1 mb-2">
+							<span class="text-xl font-bold text-[#f7421e]">Bs.</span>
+							<span class="text-4xl md:text-6xl font-black text-[#f7421e] tracking-tighter">
+								{(Number(selectedProduct.preciopormayor) * (selectedProduct.moq || 12)).toFixed(2)}
 							</span>
-							<span class="text-xs font-bold text-gray-500 ml-1">x unidad</span>
 						</div>
 
-						<div class="mt-2 bg-white border border-[#f7421e]/30 rounded-xl p-2 md:p-3 flex items-center gap-2 shadow-sm w-full">
-							<div class="bg-[#fff0ed] p-1 rounded-full shrink-0">
-								<svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 md:h-5 md:w-5 text-[#f7421e]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+						<div class="mt-2 bg-[#fff0ed] border border-[#f7421e]/20 rounded-xl p-3 md:p-4 flex items-center gap-3 w-full mb-3">
+							<div class="bg-white p-2 rounded-full shrink-0 shadow-sm border border-orange-100">
+								<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 md:h-6 md:w-6 text-[#f7421e]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
 								</svg>
 							</div>
-							<div class="flex flex-col leading-none">
-								<span class="text-[#f7421e] font-black text-[9px] uppercase mb-0.5">MOQ:</span>
-								<span class="text-[#222] font-bold text-[10px] md:text-sm">
-									Mínimo {selectedProduct.moq || 12} unidad.
+							<div class="flex flex-col leading-tight">
+								<span class="text-[#f7421e] font-black text-[11px] md:text-[13px] uppercase mb-1">
+									Compra mínima: {selectedProduct.moq || 12} unidades
+								</span>
+								<span class="text-[#222] font-medium text-[12px] md:text-sm">
+									Bs. {Number(selectedProduct.preciopormayor).toFixed(2)} cada unidad.
 								</span>
 							</div>
 						</div>
@@ -386,14 +388,14 @@
 					{#if selectedProduct.disponible}
 						<button
 							on:click={addAndExit}
-							class="w-full bg-[#00C853] hover:bg-[#00a844] text-white py-3 md:py-5 rounded-2xl font-black uppercase text-xs tracking-[0.1em] shadow-xl shadow-green-100 active:scale-95 transition-all mb-2 md:mb-4"
+							class="w-full bg-[#f7421e] hover:bg-[#d12e0e] text-white py-4 md:py-5 rounded-2xl font-black uppercase text-xs md:text-sm tracking-[0.1em] shadow-lg shadow-orange-500/30 active:scale-95 transition-all mb-2 md:mb-4"
 						>
 							AÑADIR AL PEDIDO
 						</button>
 					{:else}
 						<button
 							disabled
-							class="w-full bg-gray-200 text-gray-400 py-3 md:py-5 rounded-2xl font-black uppercase text-xs tracking-[0.1em] mb-2 md:mb-4 cursor-not-allowed"
+							class="w-full bg-gray-200 text-gray-400 py-4 md:py-5 rounded-2xl font-black uppercase text-xs md:text-sm tracking-[0.1em] mb-2 md:mb-4 cursor-not-allowed"
 						>
 							Producto Agotado
 						</button>

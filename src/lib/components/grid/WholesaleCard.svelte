@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { createEventDispatcher, onMount, onDestroy } from 'svelte';
-	import { fly } from 'svelte/transition';
+	import { createEventDispatcher } from 'svelte';
+	import { cart } from '$lib/stores/cart';
 
 	export let product: any;
 	export let index: number = 0;
@@ -8,34 +8,10 @@
 
 	const dispatch = createEventDispatcher();
 
-	// ✅ FIX: Reemplaza URLs viejas al vuelo
 	function fixUrl(url: string): string {
 		if (!url) return '';
 		return url.replace('https://api.importadoraale.app/v1', 'https://app.grupo59.com/v1');
 	}
-
-	const salesTags = [
-		"🔥 +1 docena vendida hoy", "🔥 +5 docenas vendidas hoy", "🔥 +2 docenas despachadas ",
-		"🌍 Envíos a los 9 departamentos", "🚚 Saliendo carga a La Paz", "⭐ Alta rotación en El Alto",
-		"📦 Pedido frecuente en Tarija", "🚚 Envío listo para Trinidad - Beni", "📦 Despacho a Riberalta",
-		"🚚 Ruta activa a Rurrenabaque", "📦 Envíos a Cobija - Pando", "📦 Saliendo pedido a Sucre",
-		"🔥 Top ventas en Cochabamba", "📦 Envíos diarios a Potosí y Oruro", "✅ Stock verificado por Ale",
-		"✅ Salida diaria de mercadería"
-	];
-	let i = 0;
-	let interval: any;
-
-	onMount(() => {
-		const delay = 2000 + Math.random() * 2000;
-		setTimeout(() => {
-			interval = setInterval(() => {
-				i = (i + 1) % salesTags.length;
-			}, 3500);
-		}, delay);
-	});
-	onDestroy(() => {
-		if (interval) clearInterval(interval);
-	});
 
 	function handleKeydown(e: KeyboardEvent) {
 		if (e.key === 'Enter' || e.key === ' ') {
@@ -44,83 +20,87 @@
 		}
 	}
 
-	function calculateDiscountedPrice(price: number): number {
-		return price * 0.8;
+	function addToCart(e: Event) {
+		e.stopPropagation();
+		const quantity = product.moq || 12;
+		const priceType = showUnitPrice ? 'unidad' : 'mayorista';
+		cart.add(product, quantity, priceType);
 	}
+
+	// LÓGICA DE PRECIOS BASE (Limpia, sin cálculos raros)
+	$: rawPrice = showUnitPrice ? (Number(product.precioUnidad) * 0.8) : (Number(product.preciopormayor) * (product.moq || 12));
+	$: formattedPrice = rawPrice.toFixed(2);
+	$: [intPart, decPart] = formattedPrice.split('.');
 </script>
 
 <div
-	class="group relative bg-white rounded-xl border border-gray-200 flex flex-col hover:shadow-lg transition-all duration-300 cursor-pointer overflow-hidden font-sans h-full { !product.disponible ? 'opacity-60' : '' }"
+	class="group bg-white flex flex-col cursor-pointer font-sans h-full p-2 border border-transparent hover:border-[#FF6A00] hover:shadow-lg rounded-xl transition-all duration-200 { !product.disponible ? 'opacity-60' : '' }"
 	on:click={() => dispatch('select', product)}
 	on:keydown={handleKeydown}
 	role="button"
 	tabindex="0"
 >
-	{#if !product.disponible}
-		<div class="absolute top-0 right-0 z-20 bg-red-500 text-white text-[9px] font-bold px-2 py-1 rounded-bl-lg shadow-sm">
-			Agotado
-		</div>
-	{/if}
+	<div class="aspect-square w-full relative bg-[#F8F8F8] rounded-md overflow-hidden">
+		{#if product.disponible}
+			<div class="absolute top-2 left-2 z-10 bg-[#FFF0E5] text-[#FF6A00] text-[9px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 border border-[#FF6A00]/20">
+				<svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+				Envío Inmediato
+			</div>
+		{/if}
 
-	<div class="aspect-square w-full relative bg-[#f8f8f8]">
+		{#if !product.disponible}
+			<div class="absolute top-0 right-0 z-20 bg-[#B12704] text-white text-[11px] font-bold px-2 py-1 shadow-sm">
+				Agotado
+			</div>
+		{/if}
+
 		<img
 			src="{fixUrl(product.imagen)}&width=400&height=400&quality=75&output=webp"
 			alt={product.descripcion}
 			loading={index < 4 ? "eager" : "lazy"}
 			fetchpriority={index < 4 ? "high" : "auto"}
-			width="400"
-			height="400"
-			class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 { !product.disponible ? 'grayscale' : '' }"
+			class="absolute inset-0 w-full h-full object-contain mix-blend-multiply transition-transform duration-500 hover:scale-105 { !product.disponible ? 'grayscale' : '' }"
 		/>
-
-		{#if product.imagen2}
-			<img
-				src="{fixUrl(product.imagen2)}&width=400&height=400&quality=75&output=webp"
-				alt="{product.descripcion} vista 2"
-				loading="lazy"
-				width="400"
-				height="400"
-				class="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-300 { !product.disponible ? 'grayscale' : '' }"
-			/>
-		{/if}
 	</div>
 
-	<div class="p-2 flex flex-col flex-1">
-		<div class="mb-1.5">
-			<h3 class="font-sans font-medium text-[#222] text-[11px] leading-3 line-clamp-2 h-[24px] mb-0.5 capitalize">
-				{product.descripcion.toLowerCase()}
-			</h3>
+	<div class="flex flex-col flex-1 pt-2">
 
-			<div class="flex items-baseline gap-0.5 text-[#222]">
-				<span class="text-[10px] font-bold">Bs.</span>
-				<span class="font-sans font-black text-base leading-none">
-					{showUnitPrice ? calculateDiscountedPrice(Number(product.precioUnidad)).toFixed(2) : Number(product.preciopormayor).toFixed(2)}
-				</span>
+		<h3 class="font-sans text-[#0F1111] text-[13px] md:text-[14px] leading-[18px] line-clamp-2 h-[36px] group-hover:text-[#FF6A00] capitalize transition-colors">
+			{product.descripcion.toLowerCase()}
+		</h3>
+
+		<div class="mt-1 flex flex-col mb-auto">
+
+			<div class="flex items-end gap-1.5 text-[#0F1111] mb-0.5">
+				<div class="flex items-start">
+					<span class="text-[11px] leading-tight pt-[3px] mr-[1px] font-bold">Bs.</span>
+					<span class="font-sans text-[24px] md:text-[28px] font-bold leading-none tracking-tight">{intPart}</span>
+					<span class="text-[11px] leading-tight pt-[2px] font-bold">{decPart}</span>
+				</div>
 			</div>
 
-			{#if showUnitPrice}
-				<div class="text-[10px] text-red-500 font-medium">
-					20% descuento: Bs. {Number(product.precioUnidad).toFixed(2)}
-				</div>
-			{/if}
+			<div class="text-[11.5px] leading-[16px] text-[#565959] mt-0.5">
+				Compra mínima: {product.moq || 12} unid. <br/>
+				<span class="font-bold text-[#0F1111]">Bs. {Number(product.preciopormayor).toFixed(2)} c/u</span>
+			</div>
 		</div>
 
-		<div class="text-[11px] text-[#222] font-medium font-sans leading-tight">
-			{showUnitPrice ? 'Precio por unidad' : `${product.moq || 12} unidades (MOQ)`}
-		</div>
-
-		<div class="relative h-4 overflow-hidden mt-auto w-full pt-1">
-			{#key i}
-				<div
-					in:fly={{ y: 10, duration: 300 }}
-					out:fly={{ y: -10, duration: 300 }}
-					class="absolute inset-0 flex items-center w-full"
+		<div class="mt-2.5 pt-1">
+			{#if product.disponible}
+				<button
+					on:click={addToCart}
+					class="w-full bg-[#FF6A00] hover:bg-[#E55F00] text-white font-bold text-[13px] py-2 rounded-full shadow-md shadow-orange-500/20 transition-all active:scale-95 flex justify-center items-center gap-1"
 				>
-					<span class="text-[9px] text-[#f2421e] font-bold leading-tight font-sans w-full truncate">
-						{salesTags[i]}
-					</span>
-				</div>
-			{/key}
+					Agregar
+				</button>
+			{:else}
+				<button
+					disabled
+					class="w-full bg-[#F7F8F8] text-[#565959] font-medium text-[13px] py-2 rounded-full border border-[#D5D9D9] cursor-not-allowed"
+				>
+					Agotado
+				</button>
+			{/if}
 		</div>
 	</div>
 </div>

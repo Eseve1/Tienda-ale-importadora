@@ -157,9 +157,3 @@
 		</div>
 	</div>
 {/if}
-
-<style>
-    .font-poppins {
-        font-family: 'Poppins', sans-serif;
-    }
-</style>
