@@ -48,7 +48,7 @@
 		{/if}
 
 		<img
-			src="{fixUrl(product.imagen)}&width=600&height=600&quality=85&output=webp"
+			src="{fixUrl(product.imagen)}&width=300&height=300&quality=75&output=webp"
 			alt={product.descripcion}
 			loading={index < 4 ? "eager" : "lazy"}
 			fetchpriority={index < 4 ? "high" : "auto"}
