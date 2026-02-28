@@ -1,94 +1,110 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
+	import { fixUrl } from '$lib/utils';
+
 	export let product: any;
 	export let index: number = 0;
+	export let descuentoGlobal: number = 0;
 
 	const dispatch = createEventDispatcher();
-
-	function fixUrl(url: string): string {
-		if (!url) return '';
-		return url.replace('https://api.importadoraale.app/v1', 'https://app.grupo59.com/v1');
-	}
 
 	function handleKeydown(e: KeyboardEvent) {
 		if (e.key === 'Enter' || e.key === ' ') {
 			e.preventDefault();
-			dispatch('showLocations', product);
+			if (product.disponible) dispatch('showLocations', product);
 		}
 	}
 
-	$: originalPrice = Number(product.precioUnidad);
-	$: discountedPrice = originalPrice * 0.8;
-	$: formattedPrice = discountedPrice.toFixed(2);
-	$: [intPart, decPart] = formattedPrice.split('.');
+	// LÓGICA:
+	// descuento = -1  → sin descuento (excluido explícitamente)
+	// descuento =  0  → usa el global
+	// descuento > 0   → usa el propio %
+	$: descuentoProp = Number(product.descuento ?? 0);
+	$: descuentoEfectivo = descuentoProp === -1 ? 0 : descuentoProp > 0 ? descuentoProp : descuentoGlobal;
+	$: tieneDescuento  = descuentoEfectivo > 0;
+	$: originalPrice   = Number(product.precioUnidad);
+	$: discountedPrice = tieneDescuento
+		? Number((originalPrice * (1 - descuentoEfectivo / 100)).toFixed(2))
+		: originalPrice;
 </script>
 
 <div
-	class="group bg-white flex flex-col cursor-pointer font-sans h-full border border-transparent hover:border-[#FF6A00] hover:shadow-lg rounded-xl transition-all duration-200 overflow-hidden { !product.disponible ? 'opacity-60' : '' }"
-	on:click={() => dispatch('showLocations', product)}
+	class="card {!product.disponible ? 'card-agotado' : ''}"
+	on:click={() => { if (product.disponible) dispatch('showLocations', product); }}
 	on:keydown={handleKeydown}
 	role="button"
 	tabindex="0"
 >
-	<!-- FOTO grande, sin padding -->
-	<div class="aspect-square w-full relative bg-[#F8F8F8] overflow-hidden">
+	<div class="card-img-wrap">
 		{#if !product.disponible}
-			<div class="absolute top-0 right-0 z-20 bg-[#B12704] text-white text-[11px] font-bold px-2 py-1 shadow-sm">
-				Agotado
-			</div>
+			<span class="badge-agotado">Agotado</span>
 		{/if}
 
 		<img
-			src="{fixUrl(product.imagen)}&width=300&height=300&quality=75&output=webp"
+			src="{fixUrl(product.imagen)}&width=400&height=400&quality=85&output=webp"
 			alt={product.descripcion}
 			loading={index < 4 ? "eager" : "lazy"}
 			fetchpriority={index < 4 ? "high" : "auto"}
-			class="absolute inset-0 w-full h-full object-contain mix-blend-multiply transition-transform duration-500 group-hover:scale-105 { !product.disponible ? 'grayscale' : '' }"
+			class="card-img {!product.disponible ? 'card-img-gray' : ''}"
 		/>
+
+		{#if product.disponible && tieneDescuento}
+			<span class="discount-chip">-{descuentoEfectivo}%</span>
+		{/if}
 	</div>
 
-	<div class="flex flex-col flex-1 p-2.5">
+	<div class="card-info">
+		<p class="card-name">{product.descripcion.toLowerCase()}</p>
 
-		<h3 class="font-sans text-[#0F1111] text-[13px] md:text-[14px] leading-[18px] line-clamp-2 h-[36px] group-hover:text-[#FF6A00] capitalize transition-colors">
-			{product.descripcion.toLowerCase()}
-		</h3>
-
-		<div class="mt-1 flex flex-col mb-auto">
-			<div class="flex items-end gap-1.5 text-[#0F1111] mb-0.5">
-				<span class="text-[11px] font-black text-[#B12704] bg-[#FFF0ED] px-1 py-0.5 rounded-sm mb-1">-20%</span>
-				<div class="flex items-start">
-					<span class="text-[11px] leading-tight pt-[3px] mr-[1px] font-bold">Bs.</span>
-					<span class="font-sans text-[24px] md:text-[28px] font-bold leading-none tracking-tight">{intPart}</span>
-					<span class="text-[11px] leading-tight pt-[2px] font-bold">{decPart}</span>
-				</div>
+		<div class="price-block">
+			<div class="total-row">
+				<span class="t-bs">Bs.</span>
+				<span class="t-number">{discountedPrice.toFixed(2)}</span>
 			</div>
-
-			<div class="text-[11px] leading-[15px] flex flex-col gap-1 mt-0.5">
-				<span class="text-[#565959]">
-					Antes: <span class="line-through text-gray-400 mx-0.5">Bs.{originalPrice.toFixed(2)}</span>
-				</span>
-				<span class="text-[#565959] font-medium flex items-center gap-1">
-					<svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-					Solo en tienda física
-				</span>
-			</div>
-		</div>
-
-		<div class="mt-2.5 pt-1">
-			{#if product.disponible}
-				<button
-					class="w-full bg-[#FF6A00] hover:bg-[#E55F00] text-white font-bold text-[13px] py-2 rounded-lg transition-all active:scale-95 flex justify-center items-center gap-1"
-				>
-					Comprar
-				</button>
-			{:else}
-				<button
-					disabled
-					class="w-full bg-[#F7F8F8] text-[#565959] font-medium text-[13px] py-2 rounded-lg border border-[#D5D9D9] cursor-not-allowed"
-				>
-					Agotado
-				</button>
+			{#if tieneDescuento}
+				<span class="t-sub">antes Bs. {originalPrice.toFixed(2)}</span>
 			{/if}
 		</div>
 	</div>
 </div>
+
+<style>
+    .card {
+        background: #fff; border-radius: 10px; border: 1px solid #ebebeb;
+        overflow: hidden; cursor: pointer;
+        transition: border-color 0.18s, box-shadow 0.18s, transform 0.18s;
+        display: flex; flex-direction: column;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+    }
+    .card:hover { border-color: #1A56DB; box-shadow: 0 6px 20px rgba(26,86,219,0.1); transform: translateY(-2px); }
+    .card-agotado { opacity: 0.5; cursor: not-allowed; }
+
+    .card-img-wrap { position: relative; width: 100%; padding-top: 100%; background: #f7f7f7; overflow: hidden; }
+    .card-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
+    .card:hover:not(.card-agotado) .card-img { transform: scale(1.04); }
+    .card-img-gray { filter: grayscale(1); }
+
+    .badge-agotado {
+        position: absolute; top: 8px; left: 8px; z-index: 2;
+        background: rgba(0,0,0,0.7); color: #fff; font-size: 10px; font-weight: 800;
+        padding: 3px 8px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .discount-chip {
+        position: absolute; bottom: 8px; right: 8px; background: #1A56DB;
+        color: #fff; font-size: 10px; font-weight: 800; padding: 3px 7px;
+        border-radius: 4px; z-index: 2; letter-spacing: 0.02em;
+    }
+
+    .card-info { padding: 10px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+    .card-name {
+        font-size: clamp(12px, 1.5vw, 14px); font-weight: 600; color: #111;
+        line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2;
+        -webkit-box-orient: vertical; overflow: hidden; text-transform: capitalize;
+        margin: 0; min-height: 2.6em;
+    }
+    .price-block { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+    .total-row { display: flex; align-items: baseline; gap: 2px; }
+    .t-bs { font-size: clamp(12px, 1.5vw, 14px); font-weight: 800; color: #1A56DB; }
+    .t-number { font-size: clamp(18px, 2.5vw, 24px); font-weight: 900; color: #1A56DB; letter-spacing: -0.5px; line-height: 1; }
+    .t-sub { font-size: clamp(11px, 1.3vw, 13px); font-weight: 500; color: #aaa; text-decoration: line-through; }
+</style>

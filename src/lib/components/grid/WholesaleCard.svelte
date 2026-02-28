@@ -1,17 +1,13 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
+	import { fixUrl } from '$lib/utils';
 	import { cart } from '$lib/stores/cart';
 
 	export let product: any;
 	export let index: number = 0;
-	export let showUnitPrice: boolean = false;
 
 	const dispatch = createEventDispatcher();
 
-	function fixUrl(url: string): string {
-		if (!url) return '';
-		return url.replace('https://api.importadoraale.app/v1', 'https://app.grupo59.com/v1');
-	}
 
 	function handleKeydown(e: KeyboardEvent) {
 		if (e.key === 'Enter' || e.key === ' ') {
@@ -22,77 +18,158 @@
 
 	function addToCart(e: Event) {
 		e.stopPropagation();
-		const quantity = product.moq || 12;
-		const priceType = showUnitPrice ? 'unidad' : 'mayorista';
-		cart.add(product, quantity, priceType);
+		cart.add(product, product.moq || 12, 'mayorista');
 	}
 
-	$: rawPrice = showUnitPrice ? (Number(product.precioUnidad) * 0.8) : (Number(product.preciopormayor) * (product.moq || 12));
-	$: formattedPrice = rawPrice.toFixed(2);
-	$: [intPart, decPart] = formattedPrice.split('.');
+	$: unitPrice   = Number(product.preciopormayor);
+	$: moq         = product.moq || 12;
+	$: totalPrice  = unitPrice * moq;
 </script>
 
 <div
-	class="group bg-white flex flex-col cursor-pointer font-sans h-full border border-transparent hover:border-[#FF6A00] hover:shadow-lg rounded-xl transition-all duration-200 overflow-hidden { !product.disponible ? 'opacity-60' : '' }"
+	class="card {!product.disponible ? 'card-agotado' : ''}"
 	on:click={() => dispatch('select', product)}
 	on:keydown={handleKeydown}
 	role="button"
 	tabindex="0"
 >
-	<div class="aspect-square w-full relative bg-[#F8F8F8] overflow-hidden">
-
+	<div class="card-img-wrap">
 		{#if !product.disponible}
-			<div class="absolute top-0 right-0 z-20 bg-[#B12704] text-white text-[11px] font-bold px-2 py-1 shadow-sm">
-				Agotado
-			</div>
+			<span class="badge-agotado">Agotado</span>
 		{/if}
 
 		<img
-			src="{fixUrl(product.imagen)}&width=300&height=300&quality=75&output=webp"
+			src="{fixUrl(product.imagen)}&width=400&height=400&quality=85&output=webp"
 			alt={product.descripcion}
 			loading={index < 4 ? "eager" : "lazy"}
 			fetchpriority={index < 4 ? "high" : "auto"}
-			class="absolute inset-0 w-full h-full object-contain mix-blend-multiply transition-transform duration-500 group-hover:scale-105 { !product.disponible ? 'grayscale' : '' }"
+			class="card-img {!product.disponible ? 'card-img-gray' : ''}"
 		/>
+
+		{#if product.disponible}
+			<button on:click={addToCart} aria-label="Agregar al pedido" class="card-add-btn">
+				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+				</svg>
+			</button>
+		{/if}
 	</div>
 
-	<div class="flex flex-col flex-1 p-2.5">
+	<div class="card-info">
+		<p class="card-name">{product.descripcion.toLowerCase()}</p>
 
-		<h3 class="font-sans text-[#0F1111] text-[13px] md:text-[14px] leading-[18px] line-clamp-2 h-[36px] group-hover:text-[#FF6A00] capitalize transition-colors">
-			{product.descripcion.toLowerCase()}
-		</h3>
-
-		<div class="mt-1 flex flex-col mb-auto">
-			<div class="flex items-end gap-1.5 text-[#0F1111] mb-0.5">
-				<div class="flex items-start">
-					<span class="text-[11px] leading-tight pt-[3px] mr-[1px] font-bold">Bs.</span>
-					<span class="font-sans text-[24px] md:text-[28px] font-bold leading-none tracking-tight">{intPart}</span>
-					<span class="text-[11px] leading-tight pt-[2px] font-bold">{decPart}</span>
-				</div>
+		<div class="price-block">
+			<div class="total-row">
+				<span class="t-bs">Bs.</span>
+				<span class="t-number">{totalPrice.toFixed(2)}</span>
 			</div>
-
-			<div class="text-[11.5px] leading-[16px] text-[#565959] mt-0.5">
-				Compra mínima: {product.moq || 12} unid. <br/>
-				<span class="font-bold text-[#0F1111]">Bs. {Number(product.preciopormayor).toFixed(2)} c/u</span>
-			</div>
-		</div>
-
-		<div class="mt-2.5 pt-1">
-			{#if product.disponible}
-				<button
-					on:click={addToCart}
-					class="w-full bg-[#FF6A00] hover:bg-[#E55F00] text-white font-bold text-[13px] py-2 rounded-lg transition-all active:scale-95 flex justify-center items-center gap-2"
-				>
-					Agregar
-				</button>
-			{:else}
-				<button
-					disabled
-					class="w-full bg-[#F7F8F8] text-[#565959] font-medium text-[13px] py-2 rounded-lg border border-[#D5D9D9] cursor-not-allowed"
-				>
-					Agotado
-				</button>
-			{/if}
+			<span class="t-sub">por {moq} unid. · Bs. {unitPrice.toFixed(2)} c/u</span>
 		</div>
 	</div>
 </div>
+
+<style>
+    .card {
+        font-family: "Inter", sans-serif;
+        background: #fff;
+        border-radius: 10px;
+        border: 1px solid #ebebeb;
+        overflow: hidden;
+        cursor: pointer;
+        transition: border-color 0.18s, box-shadow 0.18s, transform 0.18s;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+    }
+    .card:hover {
+        border-color: #D93518;
+        box-shadow: 0 6px 20px rgba(217,53,24,0.12);
+        transform: translateY(-2px);
+    }
+    .card-agotado { opacity: 0.5; }
+
+    .card-img-wrap {
+        position: relative;
+        width: 100%;
+        padding-top: 100%;
+        background: #f7f7f7;
+        overflow: hidden;
+    }
+    .card-img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .card-add-btn {
+        position: absolute;
+        bottom: 8px; right: 8px;
+        width: 30px; height: 30px;
+        background: #D93518;
+        color: #fff;
+        border: none;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(217,53,24,0.4);
+        z-index: 2;
+    }
+
+    .card-info {
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        flex: 1;
+    }
+
+    .card-name {
+        font-size: clamp(12px, 1.5vw, 14px);
+        font-weight: 600;
+        color: #111;
+        line-height: 1.3;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-transform: capitalize;
+        margin: 0;
+        min-height: 2.6em;
+    }
+
+    /* PRECIO TOTAL PRINCIPAL */
+    .price-block {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
+    }
+    .total-row {
+        display: flex;
+        align-items: baseline;
+        gap: 2px;
+    }
+    .t-bs {
+        font-size: clamp(12px, 1.5vw, 14px);
+        font-weight: 800;
+        color: #D93518;
+    }
+    .t-number {
+        font-size: clamp(18px, 2.5vw, 24px);
+        font-weight: 900;
+        color: #D93518;
+        letter-spacing: -0.5px;
+        line-height: 1;
+    }
+    .t-sub {
+        font-size: clamp(11px, 1.3vw, 13px);
+        font-weight: 500;
+        color: #111;
+    }
+
+</style>

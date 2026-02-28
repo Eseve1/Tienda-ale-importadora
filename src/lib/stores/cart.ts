@@ -57,7 +57,7 @@ function createCart() {
 			} else {
 				newItems = [...s.items, { product, quantity, price }];
 			}
-			return recalcular(newItems, true); // Abre el carrito al añadir
+			return recalcular(newItems, s.isOpen); // NO fuerza apertura
 		}),
 
 		// Actualizar cantidad

@@ -107,3 +107,8 @@ export function markdownToText(markdown: string): string {
 			.trim()
 	);
 }
+
+export function fixUrl(url: string): string {
+	if (!url) return '';
+	return url.replace('https://api.importadoraale.app/v1', 'https://app.grupo59.com/v1');
+}
