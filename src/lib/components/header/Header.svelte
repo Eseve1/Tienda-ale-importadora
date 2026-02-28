@@ -123,7 +123,7 @@
 						<span class="action-label">Pedidos</span>
 					</a>
 
-					<button on:click={() => cart.setIsOpen(true)} class="action-btn action-cart" aria-label="Ver carrito">
+					<button on:click={() => cart.setIsOpen(true)} class="action-btn action-cart cart-desktop-only" aria-label="Ver carrito">
 						<span class="cart-wrap">
 							<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
 								<path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
@@ -217,6 +217,10 @@
     .action-cart:hover { background: var(--accent-bg); color: var(--accent); }
     .action-label { font-size: 10.5px; font-weight: 600; white-space: nowrap; }
     @media (max-width: 639px) { .action-label { display: none; } }
+
+    /* Carrito solo visible en desktop - en móvil hay botón flotante */
+    .cart-desktop-only { display: none; }
+    @media (min-width: 640px) { .cart-desktop-only { display: flex; } }
 
     .cart-wrap { position: relative; display: flex; }
     .cart-count { position: absolute; top: -5px; right: -6px; background: var(--accent); color: #fff; font-size: 9px; font-weight: 800; min-width: 16px; height: 16px; border-radius: 8px; display: flex; align-items: center; justify-content: center; padding: 0 3px; border: 2px solid #fff; }
