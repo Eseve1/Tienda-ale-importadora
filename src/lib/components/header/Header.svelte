@@ -186,8 +186,9 @@
     .top-bar { padding: 0; }
     .top-inner { max-width: 1536px; margin: 0 auto; padding: 0 24px; height: 64px; display: flex; align-items: center; gap: 14px; box-sizing: border-box; }
 
-    .logo-home { display: flex; align-items: center; justify-content: center; color: #999; text-decoration: none; flex-shrink: 0; width: 36px; height: 36px; border-radius: 8px; transition: color 0.15s, background 0.15s; }
+    .logo-home { display: none; align-items: center; justify-content: center; color: #999; text-decoration: none; flex-shrink: 0; width: 36px; height: 36px; border-radius: 8px; transition: color 0.15s, background 0.15s; }
     .logo-home:hover { color: var(--accent); background: var(--accent-bg); }
+    @media (min-width: 640px) { .logo-home { display: flex; } }
 
     .mode-toggle { display: flex; background: #f4f4f4; border-radius: 8px; padding: 3px; gap: 2px; flex-shrink: 0; }
     .toggle-opt { display: flex; align-items: center; gap: 5px; padding: 6px 13px; border-radius: 6px; font-size: 12.5px; font-weight: 600; color: #666; text-decoration: none; white-space: nowrap; transition: background 0.15s, color 0.15s; }

@@ -106,7 +106,7 @@
     .card-add-btn {
         position: absolute;
         bottom: 8px; right: 8px;
-        width: 30px; height: 30px;
+        width: 36px; height: 36px;
         background: #D93518;
         color: #fff;
         border: none;
@@ -117,7 +117,10 @@
         cursor: pointer;
         box-shadow: 0 2px 8px rgba(217,53,24,0.4);
         z-index: 2;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
     }
+    .card-add-btn:active { transform: scale(0.9); }
 
     .card-info {
         padding: 10px;

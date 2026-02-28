@@ -169,8 +169,9 @@
 				placeholder="Buscar productos, cajas, herramientas..."
 				class="alibaba-search-input"
 			/>
-			<button on:click={ejecutarBusqueda} class="alibaba-search-btn">
-				Buscar
+			<button on:click={ejecutarBusqueda} class="alibaba-search-btn" aria-label="Buscar">
+				<svg class="search-btn-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/></svg>
+				<span class="search-btn-text">Buscar</span>
 			</button>
 		</div>
 
@@ -374,11 +375,14 @@
 
     .alibaba-header {
         background: #fff;
-        padding: 24px 20px 16px;
+        padding: 16px 16px 12px;
         display: flex;
         flex-direction: column;
         align-items: center;
         border-bottom: 1px solid #eaeaea;
+    }
+    @media (min-width: 600px) {
+        .alibaba-header { padding: 24px 20px 16px; }
     }
 
     .search-wrapper {
@@ -388,51 +392,77 @@
         border: 2px solid #D93518;
         border-radius: 8px;
         overflow: hidden;
-        margin-bottom: 16px;
+        margin-bottom: 12px;
+    }
+    @media (min-width: 600px) {
+        .search-wrapper { margin-bottom: 16px; }
     }
 
     .alibaba-search-input {
         flex: 1;
-        padding: 14px 20px;
+        padding: 12px 14px;
         border: none;
         outline: none;
-        font-size: 15px;
+        font-size: 14px;
+        min-width: 0;
+    }
+    @media (min-width: 600px) {
+        .alibaba-search-input { padding: 14px 20px; font-size: 15px; }
     }
 
     .alibaba-search-btn {
         background: #D93518;
         color: #fff;
         border: none;
-        padding: 0 40px;
+        padding: 0 14px;
         font-weight: 800;
         font-size: 16px;
         cursor: pointer;
         transition: background 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        flex-shrink: 0;
     }
+    @media (min-width: 600px) {
+        .alibaba-search-btn { padding: 0 32px; }
+    }
+    .alibaba-search-btn:hover { background: #BA2D14; }
 
-    .alibaba-search-btn:hover {
-        background: #BA2D14;
+    /* En mobile solo ícono, en desktop texto + ícono */
+    .search-btn-icon { display: block; }
+    .search-btn-text { display: none; }
+    @media (min-width: 600px) {
+        .search-btn-icon { display: none; }
+        .search-btn-text { display: block; }
     }
 
     .wholesale-banner {
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         gap: 8px;
         background: #FCF0ED;
         color: #b02a12;
-        padding: 10px 16px;
+        padding: 10px 14px;
         border-radius: 8px;
-        font-size: 12.5px;
+        font-size: 11.5px;
         max-width: 800px;
-        text-align: center;
+        width: 100%;
+        box-sizing: border-box;
+        line-height: 1.5;
     }
+    @media (min-width: 600px) {
+        .wholesale-banner { font-size: 12.5px; align-items: center; }
+    }
+    .wholesale-banner svg { flex-shrink: 0; margin-top: 1px; }
 
     .cat-mobile {
         display: flex;
         overflow-x: auto;
         scrollbar-width: none;
         -webkit-overflow-scrolling: touch;
-        padding: 12px 16px;
+        padding: 10px 12px;
         gap: 8px;
         background: #fff;
         border-bottom: 1px solid #eaeaea;
@@ -445,10 +475,10 @@
         flex-shrink: 0;
         display: flex;
         align-items: center;
-        gap: 6px;
-        padding: 8px 14px;
+        gap: 5px;
+        padding: 7px 11px;
         border-radius: 6px;
-        font-size: 12.5px;
+        font-size: 12px;
         font-weight: 500;
         border: 1px solid #eaeaea;
         background: #fafafa;
@@ -457,7 +487,7 @@
         white-space: nowrap;
         transition: all 0.2s ease;
     }
-    .chip-icon { font-size: 14px; opacity: 0.8; }
+    .chip-icon { font-size: 13px; opacity: 0.8; }
     .cat-chip:hover { background: #fff; border-color: #ccc; }
     .cat-chip-active { background: #FCF0ED; color: #D93518; border-color: #D93518; font-weight: 700; }
 
@@ -465,12 +495,18 @@
         width: 100%;
         max-width: 1536px;
         margin: 0 auto;
-        padding: 24px 24px 20px; /* Reduje el padding inferior */
+        padding: 12px 10px 16px;
         display: flex;
         gap: 24px;
         align-items: flex-start;
         box-sizing: border-box;
         flex: 1;
+    }
+    @media (min-width: 600px) {
+        .catalog-layout { padding: 20px 16px 20px; }
+    }
+    @media (min-width: 900px) {
+        .catalog-layout { padding: 24px 24px 20px; }
     }
 
     .cat-sidebar { display: none; }
@@ -574,9 +610,9 @@
     .products-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
+        gap: 8px;
     }
-    @media (min-width: 500px) { .products-grid { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 14px; } }
+    @media (min-width: 500px) { .products-grid { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; } }
     @media (min-width: 900px) { .products-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; } }
     @media (min-width: 1200px) { .products-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 18px; } }
 
@@ -633,8 +669,8 @@
 
     .scroll-top-btn {
         position: fixed;
-        bottom: 90px; right: 20px;
-        width: 44px; height: 44px;
+        bottom: 80px; right: 16px;
+        width: 40px; height: 40px;
         background: #fff;
         border: 1.5px solid #e0e0e0;
         color: #555;
@@ -646,15 +682,18 @@
         cursor: pointer;
         transition: border-color 0.15s, color 0.15s;
     }
+    @media (min-width: 600px) {
+        .scroll-top-btn { bottom: 90px; right: 20px; width: 44px; height: 44px; }
+    }
     .scroll-top-btn:hover { border-color: #D93518; color: #D93518; }
 
     .toast-added {
         position: fixed;
-        bottom: 90px; left: 50%;
+        bottom: 80px; left: 50%;
         transform: translateX(-50%);
         background: #111;
         color: #fff;
-        padding: 10px 20px;
+        padding: 10px 18px;
         border-radius: 999px;
         font-size: 13px;
         font-weight: 700;
@@ -666,6 +705,9 @@
         align-items: center;
         gap: 7px;
     }
+    @media (min-width: 600px) {
+        .toast-added { bottom: 90px; }
+    }
 
     .modal-backdrop {
         position: fixed;
@@ -674,22 +716,35 @@
         backdrop-filter: blur(6px);
         z-index: 500;
         display: flex;
-        align-items: center;
+        align-items: flex-end;
         justify-content: center;
-        padding: 16px;
+        padding: 0;
+    }
+    @media (min-width: 641px) {
+        .modal-backdrop {
+            align-items: center;
+            padding: 16px;
+        }
     }
 
     .modal-card {
         background: #fff;
         width: 100%;
         max-width: 880px;
-        max-height: 92vh;
-        border-radius: 16px;
+        max-height: 92dvh;
+        border-radius: 20px 20px 0 0;
         position: relative;
         overflow: hidden;
-        box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+        box-shadow: 0 -8px 40px rgba(0,0,0,0.2);
         display: flex;
         flex-direction: column;
+    }
+    @media (min-width: 641px) {
+        .modal-card {
+            border-radius: 16px;
+            max-height: 92vh;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+        }
     }
 
     .modal-close {
@@ -709,20 +764,27 @@
 
     .modal-body {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr;
         overflow-y: auto;
         flex: 1;
+        min-height: 0;
     }
-    @media (max-width: 640px) { .modal-body { grid-template-columns: 1fr; } }
+    @media (min-width: 641px) {
+        .modal-body { grid-template-columns: 1fr 1fr; }
+    }
 
     .modal-left {
         background: #f8f8f8;
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 32px;
+        padding: 16px;
         position: relative;
-        min-height: 300px;
+        min-height: 160px;
+        max-height: 200px;
+    }
+    @media (min-width: 641px) {
+        .modal-left { padding: 20px; min-height: 200px; max-height: none; }
     }
     .modal-agotado-overlay {
         position: absolute;
@@ -742,15 +804,19 @@
         border-radius: 8px;
         letter-spacing: 0.1em;
     }
-    .modal-img-frame { width: 100%; max-width: 300px; }
+    .modal-img-frame { width: 100%; max-width: 120px; }
+    @media (min-width: 641px) { .modal-img-frame { max-width: 300px; } }
     .modal-img { width: 100%; height: auto; object-fit: contain; border-radius: 8px; }
 
     .modal-right {
-        padding: 28px 28px 24px;
+        padding: 16px;
         display: flex;
         flex-direction: column;
-        gap: 18px;
+        gap: 12px;
         overflow-y: auto;
+    }
+    @media (min-width: 641px) {
+        .modal-right { padding: 20px; gap: 14px; }
     }
 
     .modal-header-info { display: flex; flex-direction: column; gap: 8px; }
@@ -774,13 +840,14 @@
         border-radius: 4px;
     }
     .modal-title {
-        font-size: 20px;
+        font-size: 16px;
         font-weight: 800;
         color: #111;
         text-transform: capitalize;
         line-height: 1.3;
         margin: 0;
     }
+    @media (min-width: 641px) { .modal-title { font-size: 20px; } }
 
     .vol-section { display: flex; flex-direction: column; gap: 8px; }
     .vol-label {

@@ -66,7 +66,7 @@
 		></div>
 
 		<div
-			transition:fly={{ x: 420, duration: 280 }}
+			transition:fly={{ x: 500, duration: 280 }}
 			class="sheet"
 			role="dialog"
 			aria-modal="true"
@@ -222,10 +222,10 @@
     .sheet {
         position: absolute;
         top: 0; right: 0;
-        height: 100vh; /* Fallback */
-        height: 100dvh; /* Adaptación perfecta móvil */
+        height: 100vh;
+        height: 100dvh;
         width: 100%;
-        max-width: 400px;
+        max-width: 420px;
         background: #fff;
         display: flex;
         flex-direction: column;
